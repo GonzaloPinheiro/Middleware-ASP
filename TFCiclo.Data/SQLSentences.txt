@@ -1,0 +1,50 @@
+CREATE TABLE user_info (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    user_password VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-------------------------------------------------------------------------------------------------
+
+CREATE TABLE `weather_forecast` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `city` VARCHAR(255) NOT NULL,
+    `country` VARCHAR(255) NOT NULL,
+    `requested_at` DATETIME NOT NULL, -- Cuándo se hizo la solicitud
+    `response_json` LONGTEXT NOT NULL, -- JSON completo de la API
+    `http_status` INT NOT NULL, -- (Opcional) código HTTP devuelto
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-------------------------------------------------------------------------------------------------
+
+  CREATE TABLE log_entry (
+    id INT AUTO_INCREMENT PRIMARY KEY, 
+    timeStamp DATETIME(6) NOT NULL,         -- Momento del registro (UTC)
+    level VARCHAR(50) NOT NULL,             -- Nivel del log (Info, Warning, Error, etc.)
+    source VARCHAR(255) NOT NULL,           -- Fuente (p. ej. "TFCiclo.Api.Controllers.X")
+    operation VARCHAR(255) NOT NULL,        -- Nombre de la operación/método
+    message TEXT NOT NULL,                  -- Mensaje principal
+    exception TEXT NULL,                    -- StackTrace / excepción
+    userId VARCHAR(100) NULL,               -- Id del usuario (nullable)
+    correlationId CHAR(36) NULL,            -- GUID para correlacionar peticiones
+    durationMs BIGINT NULL,                 -- Duración en milisegundos
+    metadataJson TEXT NULL                  -- Datos adicionales en formato JSON
+    )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+  -------------------------------------------------------------------------------------------------
+
+  CREATE TABLE refresh_tokens (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  token_hash VARCHAR(512) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expires_at DATETIME NOT NULL,
+  revoked_at DATETIME NULL,
+  replaced_by_token_hash VARCHAR(512) NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_refresh_token_user ON refresh_tokens(user_id);

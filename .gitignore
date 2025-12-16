@@ -1,0 +1,83 @@
+# IDEs y configuraciones
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Compilaciones
+bin/
+obj/
+[Bb]uild/
+[Ll]ogs/
+
+# Resultados de publicación / build output
+AppPackages/
+BundleArtifacts/
+TestResults/
+artifacts/
+
+# Paquetes NuGet
+*.nupkg
+*.snupkg
+*.nuspec
+packages/
+project.lock.json
+project.fragment.lock.json
+.nuget/
+
+# Archivos temporales y de usuario
+*.local
+*.env
+*.pfx
+*.pem
+*.key
+*.pub
+*.userprefs
+*.db
+*.bak
+*.log
+*.tmp
+*.temp
+*.cache
+
+# Cobertura y pruebas
+*.coverage
+*.coveragexml
+*.trx
+
+# macOS / Windows
+*.DS_Store
+Thumbs.db
+
+# ASP.NET Core específicos
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+wwwroot/lib/
+wwwroot/node_modules/
+wwwroot/dist/
+wwwroot/_framework/
+
+# .NET MAUI específicos
+# Ignoramos solo los resultados de compilación de cada plataforma, no el código fuente
+**/Platforms/Android/bin/
+**/Platforms/Android/obj/
+**/Platforms/iOS/bin/
+**/Platforms/iOS/obj/
+**/Platforms/MacCatalyst/bin/
+**/Platforms/MacCatalyst/obj/
+**/Platforms/Windows/bin/
+**/Platforms/Windows/obj/
+**/Platforms/Tizen/bin/
+**/Platforms/Tizen/obj/
+
+# Archivos de publicación (compilados)
+*.apk
+*.aab
+*.ipa
+*.app
+*.exe
+*.dll

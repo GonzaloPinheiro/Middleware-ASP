@@ -1,0 +1,45 @@
+
+v2 (calendar + login/register + forms)
+- Agregar api google calendar.
+- Agregar pila de logs
+
+- Crear enum de errores?
+	ejemplo:    /// <summary>
+                /// Códigos de resultado para operaciones de weather
+                /// Rango 10-19: Errores de inserción
+                /// Rango 20-29: Operaciones exitosas
+                /// Rango 30-39: Errores de obtención / consulta
+                /// </summary>
+                public enum WeatherOperationResult
+                {
+                    // --- Errores de inserción (10-19) ---
+                    InsertFailed = 10,
+                    InvalidData = 11,       // Datos inválidos para insertar
+                    DuplicateEntry = 12,    // Ya existe un registro con la misma clave
+
+                    // --- Operaciones exitosas (20-29) ---
+                    Created = 20,           // Registro creado correctamente
+                    Retrieved = 21,         // Registro obtenido correctamente
+                    Updated = 22,           // Registro actualizado correctamente
+
+                    // --- Errores de consulta / obtención (30-39) ---
+                    NotFound = 30,          // No se encontró el registro
+                    DbConnectionFailed = 31 // Error al conectar con la base de datos
+                }
+
+v3(exponer + test)
+- Ver si lo hago manual o uso algún servicio ya existente para los dos siguintes pasos.
+- Lanzar el servidor en la red local con raspberry + pruebas.
+- Exponer el servidor a la red con raspberry + pruebas.
+
+v4(app movil/pc)
+- Ver si es mejor crear una app con kmp o con maui.
+- Crearla
+
+//Levels
+Trace        -> Detalles muy finos, solo para debugging profundo.  
+Debug        -> Información técnica útil para desarrollo o pruebas.  
+Information  -> Operaciones normales o exitosas del sistema.  
+Warning      -> Situaciones inusuales que no detienen la ejecución.  
+Error        -> Fallos en la operación actual, pero la app sigue funcionando.  
+Critical     -> Errores graves que impiden continuar la ejecución.

@@ -1,0 +1,69 @@
+﻿using Dapper;
+using MySql.Data.MySqlClient;
+using TFCiclo.Data.Models;
+
+namespace TFCiclo.Data.Repositories
+{
+    public class LogEntryRepository
+    {
+        //Variables y objetos
+        private readonly string decryptedConnectionString;
+
+        #region Constructores
+        public LogEntryRepository(string encyptedConnection)
+        {
+            decryptedConnectionString = DecryptConnectionString(encyptedConnection);
+        }
+        #endregion
+
+        //TODO sustituir despues
+        private string DecryptConnectionString(string encrypted)
+        {
+            return encrypted;
+        }
+
+        /// <summary>
+        /// Agrega un log a la tabla log_entry
+        /// </summary>
+        /// <param name="log"></param>
+        /// <returns></returns>
+        public async Task<int> AddLogAsync(log_entry log, CancellationToken cToken)
+        {
+            //Variables y objetos
+            int newId = 0;
+
+            //Query
+            const string sql = @"
+                INSERT INTO log_entry 
+                    (level, source, operation, message, correlationId, userId, durationMs, timeStamp, exception, metadataJson)
+                VALUES
+                    (@level, @source, @operation, @message, @correlationId, @userId, @durationMs, @timeStamp, @exception, @metadataJson);
+
+                SELECT LAST_INSERT_ID();
+            ";
+
+
+            try
+            {
+                //Compruebo que el log exista
+                if (log == null) throw new ArgumentNullException(nameof(log));
+
+
+                //Creo la conexion a DB
+                await using MySqlConnection connection = new MySqlConnection(decryptedConnectionString);
+                await connection.OpenAsync(cToken);
+
+
+                //Inserto el log
+                newId = await connection.ExecuteScalarAsync<int>(sql, log);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al insertar log: {ex}");
+            }
+
+            //Devuelvo el resultado
+            return newId;
+        }
+    }
+}

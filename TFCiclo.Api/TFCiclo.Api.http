@@ -1,0 +1,6 @@
+@TFCiclo.Api_HostAddress = http://localhost:5124
+
+GET {{TFCiclo.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
