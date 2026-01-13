@@ -19,11 +19,11 @@ namespace TFCiclo.Data.Services
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
 
-            BoundedChannelOptions options = new BoundedChannelOptions(10000) //Ajustar según tu entorno
+            BoundedChannelOptions options = new BoundedChannelOptions(10000) //Cantidad máxima de la cola de logs
             {
                 SingleReader = true,
                 SingleWriter = false,
-                FullMode = BoundedChannelFullMode.DropOldest // política: descarta logs antiguos si está lleno
+                FullMode = BoundedChannelFullMode.DropOldest //Descarta logs antiguos si está lleno
             };
 
             _channel = Channel.CreateBounded<log_entry>(options);
@@ -77,7 +77,7 @@ namespace TFCiclo.Data.Services
                         try
                         {
                             // Aquí sí hacemos await a la BD, pero en el worker (no en la petición)
-                            await _repository.AddLogAsync(item, stoppingToken).ConfigureAwait(false);
+                            await _repository.InsertLogAsync(item, stoppingToken).ConfigureAwait(false);
                         }
                         catch (Exception ex)
                         {
@@ -109,7 +109,7 @@ namespace TFCiclo.Data.Services
                 {
                     try
                     {
-                        await _repository.AddLogAsync(item, cancellationToken).ConfigureAwait(false);
+                        await _repository.InsertLogAsync(item, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {

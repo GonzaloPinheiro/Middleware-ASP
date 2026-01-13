@@ -1,7 +1,18 @@
 
+Cambios hechos desde versión aterior:
+- Agregado refresh token.
+- Agregada pila de logs.
+- Rate limiting
+
 v2 (calendar + login/register + forms)
+- Implementar ip real en los logs(conectar a http context?).
+- Implementar roles de usuario (admin, user).
 - Agregar api google calendar.
-- Agregar pila de logs
+- Rotación de api keys jwt
+- Cuando un usuario hace login 2 veces, invalidar el refresh token anterior y mantener la lógica del historial.
+
+
+- Pruebas de estrés
 
 - Crear enum de errores?
 	ejemplo:    /// <summary>

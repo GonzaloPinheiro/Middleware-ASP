@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 using TFCiclo.Connector;
 using TFCiclo.Data.Repositories;
 using TFCiclo.Data.Services;
@@ -39,6 +42,81 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 //JWT
+
+// --------------------------- Rate Limiting --------------------------- //
+
+//Política basada en IP(strict-high)
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("strict-auth", context =>
+    {
+        string clientIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        return RateLimitPartition.GetTokenBucketLimiter(
+            partitionKey: clientIp,
+            factory: _ => new TokenBucketRateLimiterOptions
+            {
+                TokenLimit = 5,                     // máximo 5 requests
+                TokensPerPeriod = 5,                // se repone 5 tokens por periodo
+                ReplenishmentPeriod = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0,                     // rechaza inmediatamente
+                AutoReplenishment = true
+            });
+    });
+
+
+
+    options.AddPolicy("jwt-user", context =>
+    {
+        // Intenta varios tipos comunes (orden pensado para lo más habitual)
+        string? userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value   //mapeo por defecto
+                        ?? context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value //"sub"
+                        ?? context.User.FindFirst("sub")?.Value                       //literal "sub" si no se mapeó
+                        ?? context.User.FindFirst(ClaimTypes.Name)?.Value;           //fallback a name
+
+        if (!string.IsNullOrWhiteSpace(userId))
+        {
+            string partitionKey = $"user:{userId}";
+             //Console.WriteLine($"[RateLimit] Using USER partition: {partitionKey}");
+            return RateLimitPartition.GetTokenBucketLimiter(
+                partitionKey,
+                _ => new TokenBucketRateLimiterOptions
+                {
+                    TokenLimit = 100,
+                    TokensPerPeriod = 100,
+                    ReplenishmentPeriod = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0,
+                    AutoReplenishment = true
+                });
+        }
+
+        // Fallback a IP
+        string ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        string ipKey = $"ip:{ip}";
+         //Console.WriteLine($"[RateLimit] Using IP partition: {ipKey}");
+        return RateLimitPartition.GetTokenBucketLimiter(
+            ipKey,
+            _ => new TokenBucketRateLimiterOptions
+            {
+                TokenLimit = 100,
+                TokensPerPeriod = 100,
+                ReplenishmentPeriod = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
+    });
+
+
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.Headers.RetryAfter = "60";
+        await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Try again later.", token);
+    };
+});
+
 
 
 // --------------------------- Connection string --------------------------- //
@@ -84,6 +162,12 @@ builder.Services.AddScoped<UserRepository>(provider =>
     return new UserRepository(connectionString, logger);
 });
 
+//Registrar el repositorio con DI y pasar la cadena de conexión
+builder.Services.AddScoped<RefreshTokenRepository>(provider =>
+{
+    Logger logger = provider.GetRequiredService<Logger>();
+    return new RefreshTokenRepository(connectionString, logger);
+});
 
 // --------------------------- TimerConnector y TimedHostedService --------------------------- //
 // TimerConnector recibe Logger y weather repo por DI
@@ -118,6 +202,9 @@ app.UseHttpsRedirection();
 //Autorización y mapeo de servicios
 app.UseAuthentication(); //jwt--
 app.UseAuthorization();//jwt--
+
+//Activa el rate limiting
+app.UseRateLimiter();
 
 app.MapControllers();
 

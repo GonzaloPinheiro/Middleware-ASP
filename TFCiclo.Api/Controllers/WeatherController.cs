@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using TFCiclo.Api.Controllers.Base;
 using TFCiclo.Data.ApiObjects;
 using TFCiclo.Data.Models;
 using TFCiclo.Data.Repositories;
@@ -13,7 +14,7 @@ namespace TFCiclo.Api.Controllers
     /// </summary>
     [ApiController]
     //[Route("[controller]")]
-    public class WeatherController : ControllerBase
+    public class WeatherController : ApiControllerBase
     {
         //Variables y objetos
         private readonly Logger _logger;

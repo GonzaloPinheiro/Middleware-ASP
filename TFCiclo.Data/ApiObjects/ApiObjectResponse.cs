@@ -26,4 +26,24 @@ namespace TFCiclo.Data.ApiObjects
         }
         #endregion
     }
+
+    #region TokensResponse
+    public class TokensResponse
+    {
+
+
+        public string accessToken { get; set; }
+        public string refreshToken { get; set; }
+
+        public TokensResponse() { }
+
+        public TokensResponse(string accessToken, string refreshToken)
+        {
+            this.accessToken = accessToken;
+            this.refreshToken = refreshToken;
+        }
+
+    }
+
+    #endregion
 }

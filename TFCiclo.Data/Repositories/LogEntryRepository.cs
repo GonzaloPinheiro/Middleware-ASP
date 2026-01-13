@@ -22,12 +22,13 @@ namespace TFCiclo.Data.Repositories
             return encrypted;
         }
 
+        #region Métodos públicos
         /// <summary>
         /// Agrega un log a la tabla log_entry
         /// </summary>
         /// <param name="log"></param>
         /// <returns></returns>
-        public async Task<int> AddLogAsync(log_entry log, CancellationToken cToken)
+        public async Task<int> InsertLogAsync(log_entry log, CancellationToken cToken)
         {
             //Variables y objetos
             int newId = 0;
@@ -65,5 +66,6 @@ namespace TFCiclo.Data.Repositories
             //Devuelvo el resultado
             return newId;
         }
+        #endregion
     }
 }

@@ -68,9 +68,9 @@ namespace TFCiclo.Forms.Demo
                 // Crear el objeto a enviar
                 ApiLogin solicitud = new ApiLogin
                 {
-                    username = "gonzalo",
-                    role = "user",
-                    token = "token1234",
+                    Username = "gonzalo",
+                    Role = "user",
+                    AccesToken = "token1234",
                 };
 
                 // Serializar el objeto a JSON

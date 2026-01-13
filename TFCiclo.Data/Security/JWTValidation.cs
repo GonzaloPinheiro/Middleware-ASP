@@ -14,7 +14,7 @@ namespace TFCiclo.Data.Security
         /// <param name="role"></param>
         /// <param name="secretKey"></param>
         /// <returns></returns>
-        public static string GenerateJwt(string username, string role, string secretKey)
+        public static string GenerateHashJwt(string username, string role, string secretKey)
         {
             SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -31,12 +31,51 @@ namespace TFCiclo.Data.Security
                 issuer: "tfciclo",
                 audience: "tfciclo",
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(2),
+                expires: DateTime.UtcNow.AddMinutes(15),
                 signingCredentials: creds
             );
 
             //Devolver resultado
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="secretKey"></param>
+        /// <returns></returns>
+        public static ClaimsPrincipal ValidateJwt(string token, string secretKey)
+        {
+            //Variables y objetos
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            byte[] key = Encoding.UTF8.GetBytes(secretKey);
+
+            try
+            {
+                var validationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = "tfciclo",
+                    ValidAudience = "tfciclo",
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ClockSkew = TimeSpan.Zero // Opcional: para evitar problemas de sincronización de tiempo
+                };
+
+                //Valida el token
+                var principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+
+                //Devuelve el ClaimsPrincipal si el token es válido
+                return principal;
+            }
+            catch
+            {
+                // Token inválido
+                return null;
+            }
         }
     }
 }

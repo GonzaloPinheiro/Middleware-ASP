@@ -9,19 +9,22 @@ namespace TFCiclo.Data.ApiObjects
         #region Métodos privados
         private string _username = string.Empty;
         private string _role = string.Empty;
-        private string _token = string.Empty;
+        private string _accesToken = string.Empty;
+        private string _refreshToken = string.Empty;
         #endregion
 
         #region Métodos públicos
         [Write(false)] //para que al heredar dapper ignore el campo
-        public string username { get => _username; set => _username = value; }
+        public string Username { get => _username; set => _username = value; }
 
         [Write(false)] //para que al heredar dapper ignore el campo
-        public string role { get => _role; set => _role = value; }
+        public string Role { get => _role; set => _role = value; }
 
         [Write(false)] //para que al heredar dapper ignore el campo
-        public string token { get => _token; set => _token = value; }
-        
+        public string AccesToken { get => _accesToken; set => _accesToken = value; }
+        [Write(false)] //para que al heredar dapper ignore el campo
+        public string RefreshToken { get => _refreshToken; set => _refreshToken = value; }
+
         #endregion
 
         #region Constructores

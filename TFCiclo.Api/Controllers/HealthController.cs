@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TFCiclo.Api.Controllers.Base;
 
 namespace TFCiclo.Api.Controllers
 {
@@ -7,7 +8,7 @@ namespace TFCiclo.Api.Controllers
     /// </summary>
     [ApiController]
     [Route("[controller]")]
-    public class HealthController : ControllerBase
+    public class HealthController : ApiControllerBase
     {
         [HttpGet]
         public IActionResult Get()

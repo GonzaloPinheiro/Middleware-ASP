@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using System.Text;
 
 namespace TFCiclo.Data.Security
 {
@@ -50,6 +51,19 @@ namespace TFCiclo.Data.Security
 
             //Devolver resultado
             return CryptographicOperations.FixedTimeEquals(storedKey, key);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="refreshToken"></param>
+        /// <returns></returns>
+        public static string HashRefreshToken(string refreshToken)
+        {
+            using var sha256 = SHA256.Create();
+            byte[] bytes = Encoding.UTF8.GetBytes(refreshToken);
+            byte[] hash = sha256.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
         }
     }
 }
