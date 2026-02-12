@@ -1,8 +1,8 @@
 ﻿using Dapper;
 using MySql.Data.MySqlClient;
-using Newtonsoft.Json.Linq;
 using System.Text.Json;
 using TFCiclo.Data.ApiObjects;
+using TFCiclo.Data.Exceptions;
 using TFCiclo.Data.Models;
 using TFCiclo.Data.Services;
 
@@ -48,53 +48,19 @@ namespace TFCiclo.Data.Repositories
                 LIMIT 1;
             ";
 
-            try
-            {
-                await using MySqlConnection connection = new MySqlConnection(decryptedConnectionString);
-                await connection.OpenAsync();
+            await using MySqlConnection connection = new MySqlConnection(decryptedConnectionString);
+            await connection.OpenAsync();
 
-                //Agrego las propiedades que uso en la query
-                DynamicParameters parameters = new DynamicParameters();
-                parameters.Add("@city", forecast.city);
-                parameters.Add("@country", forecast.country);
+            //Agrego las propiedades que uso en la query
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@city", forecast.city);
+            parameters.Add("@country", forecast.country);
 
-                //Devuelvo el objeto mapeado
-                result = await connection.QueryFirstOrDefaultAsync<weather_forecast>(sql, parameters);
-            }
-            catch (OperationCanceledException)
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Info",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "GetWeatherForecastAsync(weather_forecast forecast)",
-                    message = "Error al obtener datos de la Db weather_forecast"
-                });
-            }
-            catch(MySqlException ex)
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Error",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "GetWeatherForecastAsync(weather_forecast forecast)",
-                    message = "Error al obtener datos de la Db weather_forecast",
-                    exception = ex.ToString(),
-                    metadataJson = ApiHelper.Truncate(JsonSerializer.Serialize(forecast), 60000)
-                });
-            }
-            catch (Exception ex)
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Critical",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "GetWeatherForecastAsync(weather_forecast forecast)",
-                    message = "Error inesperado al obtener datos de la Db weather_forecast",
-                    exception = ex.ToString(),
-                    metadataJson = ApiHelper.Truncate(JsonSerializer.Serialize(forecast), 60000)
-                });
-            }
+            //Devuelvo el objeto mapeado
+            result = await connection.QueryFirstOrDefaultAsync<weather_forecast>(sql, parameters);
+
+            if (result == null)
+                throw new WeatherNotFoundException(forecast.city, forecast.country);
 
             //Devolver el resultado
             return result;
@@ -130,7 +96,7 @@ namespace TFCiclo.Data.Repositories
                     message = "Operación cancelada por CancellationToken."
                 });
             }
-            catch(MySqlException ex) //Mysql error
+            catch (MySqlException ex) //Mysql error
             {
                 await _logger.AddAsync(new log_entry
                 {

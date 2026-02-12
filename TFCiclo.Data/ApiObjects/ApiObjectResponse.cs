@@ -6,7 +6,7 @@ namespace TFCiclo.Data.ApiObjects
         #region Métodos públicos
         public bool result { get; set; }
 
-        public object data { get; set; }
+        public object? data { get; set; }
 
         public int error_code { get; set; }
 
@@ -17,7 +17,7 @@ namespace TFCiclo.Data.ApiObjects
         #region Constructores
         public ApiObjectResponse() { }
 
-        public ApiObjectResponse(bool result, object data, int error_code, string error_message)
+        public ApiObjectResponse(bool result, object? data, int error_code, string error_message)
         {
             this.result = result;
             this.data = data;

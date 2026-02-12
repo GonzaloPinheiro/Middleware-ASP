@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using System.Security.Cryptography;
-using System.Text.Json;
+using TFCiclo.Api.Controllers.Base;
 using TFCiclo.Data.ApiObjects;
+using TFCiclo.Data.Exceptions;
 using TFCiclo.Data.Models;
 using TFCiclo.Data.Models.TFCiclo.Data.Models;
 using TFCiclo.Data.Repositories;
@@ -12,19 +12,20 @@ using TFCiclo.Data.Services;
 namespace TFCiclo.Api.Controllers
 {
     [ApiController]
-    //[Route("api/[controller]")]
-    public class AuthController : Controller
+    public class AuthController : ApiControllerBase
     {
         //Variables y objetos
         private readonly UserRepository _userRepository;
+        private readonly user_rolesRepository _user_rolesRepository;
         private readonly RefreshTokenRepository _refreshTokenRepository;
         private readonly Logger _logger;
         private readonly IConfiguration _configuration;
 
         #region Constructores
-        public AuthController(UserRepository userRepository, RefreshTokenRepository refreshTokenRepository, Logger logger, IConfiguration config)
+        public AuthController(UserRepository userRepository, user_rolesRepository user_rolesRepository, RefreshTokenRepository refreshTokenRepository, Logger logger, IConfiguration config)
         {
             _userRepository = userRepository;
+            _user_rolesRepository = user_rolesRepository;
             _refreshTokenRepository = refreshTokenRepository;
             _logger = logger;
             _configuration = config;
@@ -38,7 +39,7 @@ namespace TFCiclo.Api.Controllers
         public async Task<ApiObjectResponse> Login([FromBody] ApiObjectRequest dto, CancellationToken cToken)
         {
             //Variables y objetos
-            string correlationId = Guid.NewGuid().ToString();
+            string correlationId = GetCorrelationId();
             ApiObjectResponse Result = new ApiObjectResponse();
 
 
@@ -65,9 +66,6 @@ namespace TFCiclo.Api.Controllers
                 source = "TFCiclo.Api.AuthController",
                 operation = "doTheLogin(ApiObjectRequest e)",
                 message = "Entrado en la función"
-#if DEBUG 
-                ,metadataJson = ApiHelper.Truncate(JsonSerializer.Serialize(e), 60000)
-#endif
             });
 
             //Variables y objetos
@@ -77,56 +75,55 @@ namespace TFCiclo.Api.Controllers
             //Obtengo el usuario
             user = await _userRepository.GetUserByUserNameAsync(e.user_info.username, cToken);
 
-            if (user != null) //Encontró un usuario
+            //Compruebo la contraseña
+            if (!PasswordHelper.VerifyPassword(e.user_info.user_password, user!.user_password))
+                return new ApiObjectResponse(false, string.Empty, 401, "Unauthorized");
+
+
+            //Obtengo el secret para generar el jwt
+            string secret = _configuration["JwtSecret"]!;
+
+            //Me aseguro de no generar un jwt no válido
+            if (string.IsNullOrEmpty(secret))
+                throw new InternalInfoNotFoundException("Secreto con valor inválido");
+
+            if (string.IsNullOrEmpty(user.username))
+                throw new ArgumentException("El username recibido es null o vacío");
+
+
+            //Obtengo los roles del usuario
+            IEnumerable<roles>? userRoles = await _user_rolesRepository.GetRolesFromUserAsync(user.id, cToken);
+
+            //Genera el jwt a devolver
+            jwtToken = JWTValidation.GenerateJwt(user.id, userRoles!.Select(r => r.name), secret);
+
+            //Genero el refresh token
+            string refreshToken = ApiHelper.GenerateNewToken();
+
+            //Creo el refresh token hasheado para guardar en DB
+            string refreshTokenHash = PasswordHelper.HashRefreshToken(refreshToken);
+
+            //Creo el objeto refresh token
+            ModelRefreshToken newRefreshTokenObj = new ModelRefreshToken()
             {
-                //Compruebo al contraseña
-                if (PasswordHelper.VerifyPassword(e.user_info.user_password, user.user_password))
-                {
-                    string secret = _configuration["JwtSecret"]!;
+                user_id = user.id,
+                created_at = DateTime.UtcNow,
+                expires_at = DateTime.UtcNow.AddDays(7),
+                created_by_ip = "ipAddress",
+                token_hash = refreshTokenHash
+            };
 
-                    //Me aseguro de no generar un jwt no válido
-                    if (string.IsNullOrEmpty(secret) || string.IsNullOrEmpty(user.username))
-                        return new ApiObjectResponse(false, string.Empty, 500, "Internal server error");
+            //Guardo el refresh token
+            await _refreshTokenRepository.InsertRefreshTokenAsync(newRefreshTokenObj, cToken);
 
-                    //Genera el jwt a devolver
-                    jwtToken = JWTValidation.GenerateHashJwt(user.username, "User", secret);
+            TokensResponse response = new TokensResponse()
+            {
+                accessToken = jwtToken,
+                refreshToken = refreshToken
+            };
 
-                    //Genero el refresh token
-                    string refreshToken = ApiHelper.GenerateNewToken();
-
-                    //Guardo el refresh token hasheado en base de datos
-                    string refreshTokenHash = PasswordHelper.HashRefreshToken(refreshToken);
-
-                    //Creo el objeto refresh token
-                    ModelRefreshToken newRefreshTokenObj = new ModelRefreshToken()
-                    {
-                        user_id = user.id,
-                        created_at = DateTime.UtcNow,
-                        expires_at = DateTime.UtcNow.AddDays(7),
-                        created_by_ip = "ipAddress",
-                        token_hash = refreshTokenHash
-                    };
-
-                    //Guardo el refresh token
-                    int insertResult = await _refreshTokenRepository.InsertRefreshTokenAsync(newRefreshTokenObj, cToken);
-
-                    //Compruebo si fallo el insert
-                    if (insertResult <= 1)
-                        return new ApiObjectResponse(false, null, 500, "Error al guardar el refresh token");
-
-                    TokensResponse response = new TokensResponse()
-                    {
-                        accessToken = jwtToken,
-                        refreshToken = refreshToken
-                    };
-
-                    //Todo Ok TODO crear objeto con token y refresh token
-                    return new ApiObjectResponse(true, response, 0, string.Empty);
-                }
-            }
-
-            //Credenciales no son correctas
-            return new ApiObjectResponse(false, string.Empty, 401, "Unauthorized");
+            //Todo Ok TODO crear objeto con token y refresh token
+            return new ApiObjectResponse(true, response, 0, string.Empty);
         }
         #endregion
 
@@ -137,7 +134,7 @@ namespace TFCiclo.Api.Controllers
         public async Task<ApiObjectResponse> Register([FromBody] ApiObjectRequest dto, CancellationToken cToken)
         {
             //Variables y objetos
-            string correlationId = Guid.NewGuid().ToString();
+            string correlationId = GetCorrelationId();
             ApiObjectResponse Result = new ApiObjectResponse();
 
 
@@ -146,7 +143,7 @@ namespace TFCiclo.Api.Controllers
                 source: "TFCiclo.Api.Controllers.AuthController",
                 operation: "Register([FromBody] ApiObjectRequest dto)",
                 correlationId: correlationId,
-                userId: User?.Identity?.Name);
+                userId: User?.Identity?.Name ?? "Unknown");
 
             //Obtener resultado
             Result = await doTheRegister(dto, cToken);
@@ -169,23 +166,19 @@ namespace TFCiclo.Api.Controllers
                 source = "TFCiclo.Api.AuthController",
                 operation = "doTheRegister(ApiObjectRequest e)",
                 message = "Entrado en la función"
-#if DEBUG
-                ,
-                metadataJson = ApiHelper.Truncate(JsonSerializer.Serialize(e), 60000)
-#endif
             });
-
 
             //Variables y objetos
             string encryptedPassword = string.Empty;
             int newId = 0;
+            int defaultRoleId = -1;
             user_info? user = null;
 
             //Compruebo si ya existe un usuario con el mismo nombre
-            user = await _userRepository.GetUserByUserNameAsync(e.user_info.username, cToken);
+            if (await _userRepository.CheckExistingUserAsync(e.user_info.username, cToken))
+                throw new ArgumentException("Ya existe un usuario con el nombre solicitado");
 
-            if (user != null) //Encontró un usuario
-                return new ApiObjectResponse(false, string.Empty, 409, "Conflict");
+            //TODO falta comprobar la información recibida
 
             //Hasheo la contraseña recibida
             encryptedPassword = PasswordHelper.HashPassword(e.user_info.user_password);
@@ -202,9 +195,11 @@ namespace TFCiclo.Api.Controllers
             //Genero el nuevo usuario
             newId = await _userRepository.InsertUserAsync(user, cToken);
 
-            //Compruebo si fallo el insert
-            if (newId <= -1)
-                return new ApiObjectResponse(false, string.Empty, 500, "Error al crear el nuevo usuario");
+            //Obtengo el rol por defecto
+            defaultRoleId = await _user_rolesRepository.GetRoleByNameAsync("user", cToken);
+
+            //Asigno el rol por defecto al nuevo usuario
+            int resultadoInsert = await _user_rolesRepository.InsertRoleToUserAsync(newId, defaultRoleId, cToken);
 
             //Todo Ok
             return new ApiObjectResponse(true, string.Empty, 0, string.Empty);
@@ -218,7 +213,7 @@ namespace TFCiclo.Api.Controllers
         public async Task<ApiObjectResponse> RefreshToken([FromBody] ApiObjectRequest dto, CancellationToken cToken)
         {
             //Variables y objetos
-            string correlationId = Guid.NewGuid().ToString();
+            string correlationId = GetCorrelationId();
             ApiObjectResponse Result = new ApiObjectResponse();
 
 
@@ -265,14 +260,12 @@ namespace TFCiclo.Api.Controllers
 
             //Varibales y objetos
             ModelRefreshToken refreshToken = null;
-            bool exitoRevoke = false;
+            //bool exitoRevoke = false;
             string secret = _configuration["JwtSecret"]!;
 
             //Comrpuebo si falta algo
-            if (string.IsNullOrEmpty(e.RefreshToken))
-            {
-                return new ApiObjectResponse(false, string.Empty, 400, "Bad Request");
-            }
+            if (string.IsNullOrEmpty(e.RefreshToken) || e.RefreshToken.Length > 255)
+                throw new ArgumentException("Es requerido recibir el RefreshToken");
 
             //Hasheo el refresh token recibido para buscarlo en DB
             string refreshTokenHash = PasswordHelper.HashRefreshToken(e.RefreshToken);
@@ -280,31 +273,25 @@ namespace TFCiclo.Api.Controllers
             //Busco el refresh token en DB activo
             refreshToken = await _refreshTokenRepository.GetRefreshTokenAsync(refreshTokenHash, cToken);
 
-            //Si no es válido devuelvo Unauthorized
-            if (refreshToken == null)
-            {
-                //Registro el intento de uso de un refresh token no válido
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Warning",
-                    source = "TFCiclo.Api.AuthController",
-                    operation = "doTheRefreshToken(ApiObjectRequest e, CancellationToken cToken)",
-                    message = "Intento de uso de refresh token no válido",
-                    userId = e.user_info.id.ToString()
-                });
+            //TODO: Asegurarme de que no hace falta en el flujo del controlador
+            //Obtengo el username de la DB
+            //string? username = await _refreshTokenRepository.GetUsernameById(refreshToken.user_id, cToken);
 
-                return new ApiObjectResponse(false, string.Empty, 401, "Unauthorized");
+            ////Me aseguro de no generar un jwt no válido
+            //if (username == null)
+            //    return new ApiObjectResponse(false, string.Empty, 401, "Unauthorized");
+
+            //Obtengo los roles del usuario
+            IEnumerable<roles>? userRoles = await _user_rolesRepository.GetRolesFromUserAsync(refreshToken.user_id, cToken);
+
+            //Compruebo si tiene roles asignados
+            if (!userRoles!.Any())
+            {
+                throw new UserNotFoundException(refreshToken.user_id);
             }
 
-            //Obtengo el username de la DB
-            string? username = await  _refreshTokenRepository.GetUsernameById(refreshToken.user_id, cToken);
-
-            //Me aseguro de no generar un jwt no válido
-            if (username == null)
-                return new ApiObjectResponse(false, string.Empty, 401, "Unauthorized");
-
-            //Genera el jwt temporal nuevo a devolver(2 horas)
-            string newJwtHash = JWTValidation.GenerateHashJwt(username, "User", secret);
+            //Genera el jwt temporal nuevo a devolver
+            string newJwt = JWTValidation.GenerateJwt(refreshToken.user_id, userRoles.Select(r => r.name), secret);
 
             //Genero el nuevo refresh token
             string newRefreshToken = ApiHelper.GenerateNewToken();
@@ -322,27 +309,20 @@ namespace TFCiclo.Api.Controllers
             };
 
             //Guardo el nuevo refresh token
-            int exitoInsert = await _refreshTokenRepository.InsertRefreshTokenAsync(newRefreshTokenObj, cToken);
+            await _refreshTokenRepository.InsertRefreshTokenAsync(newRefreshTokenObj, cToken);
 
             //Actualizo el refresh token
-            exitoRevoke = await _refreshTokenRepository.RevokeRefreshTokenAsync(refreshToken.token_hash, "revokedByIp", newRefreshTokenHash, cToken);
+            await _refreshTokenRepository.RevokeRefreshTokenAsync(refreshToken.token_hash, "revokedByIp", newRefreshTokenHash, cToken);
 
 
-            if (exitoRevoke == true && exitoInsert >= 0) //Todo Ok
+            //Si todo ok devuelvo el nuevo refresh token junto a el token normal
+            TokensResponse response = new TokensResponse()
             {
-                //Si todo ok devuelvo el nuevo refresh token junto a el token normal
-                TokensResponse response = new TokensResponse()
-                {
-                    accessToken = newJwtHash,
-                    refreshToken = newRefreshToken
-                };
+                accessToken = newJwt,
+                refreshToken = newRefreshToken
+            };
 
-                return new ApiObjectResponse(true, response, 0, string.Empty);
-            }
-            else //Fallo algo
-            {
-                return new ApiObjectResponse(false, string.Empty, 0, string.Empty);
-            }
+            return new ApiObjectResponse(true, response, 0, string.Empty);
         }
         #endregion
     }

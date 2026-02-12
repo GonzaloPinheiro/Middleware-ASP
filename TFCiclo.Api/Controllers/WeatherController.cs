@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
+using Microsoft.AspNetCore.RateLimiting;
 using TFCiclo.Api.Controllers.Base;
 using TFCiclo.Data.ApiObjects;
 using TFCiclo.Data.Models;
@@ -13,20 +13,17 @@ namespace TFCiclo.Api.Controllers
     /// Controlador encargado de enviar la información del tiempo solicitada por la app
     /// </summary>
     [ApiController]
-    //[Route("[controller]")]
     public class WeatherController : ApiControllerBase
     {
         //Variables y objetos
         private readonly Logger _logger;
         private readonly WeatherRepository _weatherRepository;
-        //private readonly UserRepository _userRepository;
 
         #region Constructores
-        public WeatherController(WeatherRepository weatherRepository, /*UserRepository userRepository,*/ Logger logger)
+        public WeatherController(WeatherRepository weatherRepository, Logger logger)
         {
             _logger = logger;
             _weatherRepository = weatherRepository;
-            //_userRepository = userRepository;
         }
         #endregion
 
@@ -37,14 +34,16 @@ namespace TFCiclo.Api.Controllers
         /// <param name="dto"></param>
         /// <returns></returns>
         [Authorize]
+        [Authorize(Roles = "user,premium_user,admin")]
         [HttpPost]
+        [EnableRateLimiting("jwt-user")]
         [Route("api/GetWeatherForecast")]
         public async Task<ApiObjectResponse> GetWeatherForecast([FromBody] ApiObjectRequest dto, CancellationToken cToken)
         {
             //Variables y objetos
-            string correlationId = Guid.NewGuid().ToString();
+            string correlationId = GetCorrelationId();
             ApiObjectResponse Result = new ApiObjectResponse();
-            string username = User.Identity.Name; // username del JWT
+            string username = User.Identity?.Name ?? "Unknown"; // username del JWT
 
             // Comienza scope: registra entrada automáticamente y registrará salida al finalizar using.
             await using OperationLogScope scope = _logger.BeginScope(
@@ -73,34 +72,32 @@ namespace TFCiclo.Api.Controllers
                 source = "TFCiclo.Api.WeatherController",
                 operation = "getOrCreateWeatherAsync(ApiObjectRequest e)",
                 message = "Entrado en la función"
-#if DEBUG
-                ,metadataJson = ApiHelper.Truncate(JsonSerializer.Serialize(e), 60000)
-#endif
             });
 
             //Variables y objetos
-            int idWeather = -1;
             weather_forecast? weatherResult = null;
+            //int idWeather = -1;
 
             //Obtengo el weather de la DB
             weatherResult = await _weatherRepository.GetWeatherForecastAsync(e.weather_forecast, cToken);
 
-            //Si no existe en DB la ubicación solicitada crearla
-            if (weatherResult == null)
-            {
-                //Inserto ubicación DB
-                idWeather = await _weatherRepository.InsertWeatherFieldAsync(e.weather_forecast);
+            //TODO ver que hacer cuando no existe la hubicación solicitada
+            ////Si no existe en DB la ubicación solicitada crearla
+            //if (weatherResult == null)
+            //{
+            //    //Inserto ubicación DB
+            //    idWeather = await _weatherRepository.InsertWeatherFieldAsync(e.weather_forecast);
 
-                //Compruebo si se ha insertado correctamente en DB
-                if (idWeather <= -1)//Fallo en la inserción
-                {
-                    return new ApiObjectResponse(false, weatherResult, 0, "no se ha insertado en db");
-                }
+            //    //Compruebo si se ha insertado correctamente en DB
+            //    if (idWeather <= -1)//Fallo en la inserción
+            //    {
+            //        return new ApiObjectResponse(false, weatherResult!, 0, "no se ha insertado en db");
+            //    }
 
-                //Obtengo el registro recién insertado
-                weatherResult = await _weatherRepository.GetWeatherForecastAsync(e.weather_forecast, cToken);
-                return new ApiObjectResponse(false, weatherResult, 999, "exito: creado en db");
-            }
+            //    //Obtengo el registro recién insertado
+            //    weatherResult = await _weatherRepository.GetWeatherForecastAsync(e.weather_forecast, cToken);
+            //    return new ApiObjectResponse(false, weatherResult!, 999, "exito: creado en db");
+            //}
 
             //Encontró en DB la ubicación
             return new ApiObjectResponse(true, weatherResult, 0, string.Empty);

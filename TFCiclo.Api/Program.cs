@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
+using TFCiclo.Api.Middleware;
 using TFCiclo.Connector;
 using TFCiclo.Data.Repositories;
 using TFCiclo.Data.Services;
@@ -36,7 +36,24 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = "tfciclo",
         ValidAudience = "tfciclo",
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+        NameClaimType = ClaimTypes.NameIdentifier, // Esto mapea el sub de jwt generado
         ClockSkew = TimeSpan.Zero // opcional: elimina margen de expiración
+    };
+    // Validación adicional para asegurar que 'sub' es un entero válido
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = context =>
+        {
+            Claim? sub = context.Principal?
+                .FindFirst(ClaimTypes.NameIdentifier);
+
+            if (sub == null || !int.TryParse(sub.Value, out _))
+            {
+                context.Fail("JWT sin 'sub' válido");
+            }
+
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -66,14 +83,11 @@ builder.Services.AddRateLimiter(options =>
     });
 
 
-
+    //UserId por defecto con fallback a IP
     options.AddPolicy("jwt-user", context =>
     {
         // Intenta varios tipos comunes (orden pensado para lo más habitual)
-        string? userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value   //mapeo por defecto
-                        ?? context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value //"sub"
-                        ?? context.User.FindFirst("sub")?.Value                       //literal "sub" si no se mapeó
-                        ?? context.User.FindFirst(ClaimTypes.Name)?.Value;           //fallback a name
+        string? userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value; //Mapero por defecto
 
         if (!string.IsNullOrWhiteSpace(userId))
         {
@@ -163,6 +177,13 @@ builder.Services.AddScoped<UserRepository>(provider =>
 });
 
 //Registrar el repositorio con DI y pasar la cadena de conexión
+builder.Services.AddScoped<user_rolesRepository>(provider =>
+{
+    Logger logger = provider.GetRequiredService<Logger>();
+    return new user_rolesRepository(connectionString, logger);
+});
+
+//Registrar el repositorio con DI y pasar la cadena de conexión
 builder.Services.AddScoped<RefreshTokenRepository>(provider =>
 {
     Logger logger = provider.GetRequiredService<Logger>();
@@ -184,6 +205,9 @@ builder.Services.AddHostedService<TimedHostedService>();
 
 // --------------------------- Build y pipeline --------------------------- //
 var app = builder.Build();
+
+//Middleware global de manejo de excepciones
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

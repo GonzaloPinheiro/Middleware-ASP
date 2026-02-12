@@ -10,21 +10,25 @@ namespace TFCiclo.Data.Security
         /// <summary>
         /// Genera un JWT firmado usando HMAC SHA256
         /// </summary>
-        /// <param name="username"></param>
+        /// <param name="userId"></param>
         /// <param name="role"></param>
         /// <param name="secretKey"></param>
         /// <returns></returns>
-        public static string GenerateHashJwt(string username, string role, string secretKey)
+        public static string GenerateJwt(int userId, IEnumerable<string> roles, string secretKey)
         {
             SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            List<Claim> claims = new List<Claim>
             {
-            new Claim(JwtRegisteredClaimNames.Sub, username),
-            new Claim(ClaimTypes.Role, role),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+                new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            foreach (string role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             //Genero el token
             JwtSecurityToken token = new JwtSecurityToken(
@@ -39,13 +43,14 @@ namespace TFCiclo.Data.Security
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="token"></param>
         /// <param name="secretKey"></param>
         /// <returns></returns>
-        public static ClaimsPrincipal ValidateJwt(string token, string secretKey)
+        public static ClaimsPrincipal? ValidateJwt(string token, string secretKey)
         {
             //Variables y objetos
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
@@ -62,7 +67,10 @@ namespace TFCiclo.Data.Security
                     ValidIssuer = "tfciclo",
                     ValidAudience = "tfciclo",
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ClockSkew = TimeSpan.Zero // Opcional: para evitar problemas de sincronización de tiempo
+                    ClockSkew = TimeSpan.Zero, // Opcional: para evitar problemas de sincronización de tiempo
+
+                    RoleClaimType = ClaimTypes.Role,
+                    NameClaimType = ClaimTypes.NameIdentifier
                 };
 
                 //Valida el token

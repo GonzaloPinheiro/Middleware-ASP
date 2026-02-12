@@ -1,8 +1,6 @@
 ﻿using Dapper;
 using MySql.Data.MySqlClient;
-using System.Text.Json;
-using TFCiclo.Data.ApiObjects;
-using TFCiclo.Data.Models;
+using TFCiclo.Data.Exceptions;
 using TFCiclo.Data.Models.TFCiclo.Data.Models;
 using TFCiclo.Data.Services;
 
@@ -34,7 +32,7 @@ namespace TFCiclo.Data.Repositories
         /// <param name="refreshToken">Objeto refreshToken con los datos a insertar.</param>
         /// <param name="cToken">CancellationToken para cancelar la operación.</param>
         /// <returns>El ID del nuevo registro insertado en la base de datos.</returns>
-        public async Task<int> InsertRefreshTokenAsync(ModelRefreshToken refreshToken, CancellationToken cToken)
+        public async Task InsertRefreshTokenAsync(ModelRefreshToken refreshToken, CancellationToken cToken)
         {
             //Variables y objetos
             int newId = -1;
@@ -45,10 +43,6 @@ namespace TFCiclo.Data.Repositories
 
                 SELECT LAST_INSERT_ID();
             ";
-
-            //Creo la conexión a la base de datos MySQL
-            await using MySqlConnection connection = new MySqlConnection(decryptedConnectionString);
-            await connection.OpenAsync(cToken);
 
             //Agrego los campos para operar con la DB
             DynamicParameters parameters = new DynamicParameters();
@@ -64,46 +58,21 @@ namespace TFCiclo.Data.Repositories
 
             try
             {
+                //Creo la conexión a la base de datos MySQL
+                await using MySqlConnection connection = new MySqlConnection(decryptedConnectionString);
+                await connection.OpenAsync(cToken);
+
                 //Insertar el newUser en DB
                 newId = await connection.ExecuteScalarAsync<int>(sql, parameters);
-            }
-            catch (OperationCanceledException)
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Info",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "InsertRefreshTokenAsync(refreshToken refreshToken, CancellationToken cToken)",
-                    message = "Operación cancelada por CancellationToken."
-                });
+
+                //Compruebo que se ha insertado correctamente
+                if (newId <= -1)
+                    throw new DatabaseOperationException("Insertar nuevo usuario en DB");
             }
             catch (MySqlException ex)
             {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Error",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "InsertRefreshTokenAsync(refreshToken refreshToken, CancellationToken cToken)",
-                    message = "Error al insertar en la DB refresh_token",
-                    exception = ex.ToString(),
-                    metadataJson = ApiHelper.Truncate(JsonSerializer.Serialize(refreshToken), 60000)
-                });
+                throw new DatabaseOperationException("Error de operación MySql", ex);
             }
-            catch (Exception ex)
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Critical",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "InsertRefreshTokenAsync(refreshToken refreshToken, CancellationToken cToken)",
-                    message = "Error inesperado al insertar en la DB refresh_token",
-                    exception = ex.ToString(),
-                    metadataJson = ApiHelper.Truncate(JsonSerializer.Serialize(refreshToken), 60000)
-                });
-            }
-
-            //Devolver resultado
-            return newId;
         }
         #endregion
 
@@ -129,9 +98,7 @@ namespace TFCiclo.Data.Repositories
 
             //Filtros
             if (string.IsNullOrWhiteSpace(token_hash) || token_hash.Length > 255)
-            {
-                return null;
-            }
+                throw new ArgumentException("El token recibido no tiene una estructura válida");
 
             try
             {
@@ -144,38 +111,14 @@ namespace TFCiclo.Data.Repositories
 
                 //Devuelvo el objeto mapeado
                 result = await connection.QueryFirstOrDefaultAsync<ModelRefreshToken>(sql, parameters);
-            }
-            catch (OperationCanceledException) //Operación cancelada
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Info",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "GetRefreshTokenByTokenHashAsync(string token_hash, CancellationToken cToken)",
-                    message = "Operación cancelada por CancellationToken."
-                });
+
+                //Compruebo si encontro el refresh token
+                if (result == null)
+                    throw new RefreshTokenNotFoundException();
             }
             catch (MySqlException ex) //Mysql exception
             {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Error",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "GetRefreshTokenByTokenHashAsync(string token_hash, CancellationToken cToken)",
-                    message = $"Error al obtener datos de la Db refresh_token.",
-                    exception = ex.ToString()
-                });
-            }
-            catch (Exception ex) //Excepción inesperada
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Critical",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "GetRefreshTokenByTokenHashAsync(string token_hash, CancellationToken cToken)",
-                    message = "Error inesperado al obtener refresh_token",
-                    exception = ex.ToString()
-                });
+                throw new ArgumentException("Error al obtener el refresh token de la base de datos", ex);
             }
 
             //Devolver resultado
@@ -202,9 +145,8 @@ namespace TFCiclo.Data.Repositories
 
             //Filtros
             if (userId <= 0)
-            {
-                return result;
-            }
+                throw new ArgumentException("El id del usuario debe ser mayor a 0");
+            
 
             try
             {
@@ -217,44 +159,23 @@ namespace TFCiclo.Data.Repositories
 
                 result = await connection.QueryAsync<ModelRefreshToken>(sql, parameters);
             }
-            catch (OperationCanceledException)
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Info",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "GetActiveRefreshTokensByUserIdAsync(int userId, CancellationToken cToken)",
-                    message = "Operación cancelada por CancellationToken."
-                });
-            }
             catch (MySqlException ex)
             {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Error",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "GetActiveRefreshTokensByUserIdAsync(int userId, CancellationToken cToken)",
-                    message = "Error al obtener refresh tokens activos.",
-                    exception = ex.ToString()
-                });
-            }
-            catch (Exception ex)
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Critical",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "GetActiveRefreshTokensByUserIdAsync(int userId, CancellationToken cToken)",
-                    message = "Error inesperado.",
-                    exception = ex.ToString()
-                });
+                throw new DatabaseOperationException("Error al obtener el activo token del usuario", ex);
             }
 
             //Devolver resultado
             return result;
         }
 
-        public async Task<string?> GetUsernameById(int userId, CancellationToken cToken)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="cToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public async Task<string> GetUsernameById(int userId, CancellationToken cToken)
         {
             string? result = null;
 
@@ -269,7 +190,7 @@ namespace TFCiclo.Data.Repositories
 
             //Filtros
             if (userId <= -1)
-                return null;
+                throw new ArgumentException("Id de usuario recibido no válido");
 
             try
             {
@@ -282,38 +203,13 @@ namespace TFCiclo.Data.Repositories
 
                 //Devuelvo el objeto mapeado
                 result = await connection.QueryFirstOrDefaultAsync<string>(sql, parameters);
-            }
-            catch (OperationCanceledException) //Operación cancelada
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Info",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "GetActiveRefreshTokensByUserIdAsync(int userId, CancellationToken cToken)",
-                    message = "Operación cancelada por CancellationToken."
-                });
+
+                if (result == null)
+                    throw new ArgumentException("No se ha encontrado un usuario con el id indicado");
             }
             catch (MySqlException ex) //Mysql exception
             {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Error",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "GetActiveRefreshTokensByUserIdAsync(int userId, CancellationToken cToken)",
-                    message = $"Error al obtener datos de la Db.",
-                    exception = ex.ToString()
-                });
-            }
-            catch (Exception ex) //Excepción inesperada
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Critical",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "GetActiveRefreshTokensByUserIdAsync(int userId, CancellationToken cToken)",
-                    message = "Error inesperado al obtener username",
-                    exception = ex.ToString()
-                });
+                throw new DatabaseOperationException("Error al obtener el nombre de usuario en base al id", ex);
             }
 
             //Devolver resultado
@@ -331,10 +227,9 @@ namespace TFCiclo.Data.Repositories
         /// <param name="cToken">CancellationToken para cancelar la operación.</param>
         /// <returns>True si se revocó correctamente, false en caso contrario.</returns>
         /// <returns></returns>
-        public async Task<bool> RevokeRefreshTokenAsync(string tokenHash, string revokedByIp, string replacedByTokenHash, CancellationToken cToken)
+        public async Task RevokeRefreshTokenAsync(string tokenHash, string revokedByIp, string replacedByTokenHash, CancellationToken cToken)
         {
             //Variables y objetos
-            bool result = false;
             int affectedRaws = 0;
 
             const string sql = @"
@@ -348,9 +243,7 @@ namespace TFCiclo.Data.Repositories
 
             //Filtros
             if (string.IsNullOrWhiteSpace(tokenHash))
-            {
-                return false;
-            }
+                throw new InternalInfoNotFoundException($"Token Hash con valor inválido,{nameof(tokenHash)}");
 
             try
             {
@@ -367,46 +260,13 @@ namespace TFCiclo.Data.Repositories
                 affectedRaws = await connection.ExecuteAsync(sql, parameters);
 
                 //Compruebo si cambió alguna línea
-                if (affectedRaws >= 0)
-                {
-                    result = true;
-                }
-            }
-            catch (OperationCanceledException) //Operación cancelada
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Info",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "RevokeRefreshTokenAsync(string tokenHash, string revokedByIp, string replacedByTokenHash, CancellationToken cToken)",
-                    message = "Operación cancelada por CancellationToken."
-                });
+                if (affectedRaws <= 0)
+                    throw new InternalInfoNotFoundException("No se ha logrado actualizar el refresh token");
             }
             catch (MySqlException ex) //Mysql exception
             {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Error",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "RevokeRefreshTokenAsync(string tokenHash, string revokedByIp, string replacedByTokenHash, CancellationToken cToken)",
-                    message = "Error al revocar refresh token.",
-                    exception = ex.ToString()
-                });
+                throw new DatabaseOperationException("Error al actualizar el refresh token", ex);
             }
-            catch (Exception ex) //Error inesperado
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Critical",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "RevokeRefreshTokenAsync(string tokenHash, string revokedByIp, string replacedByTokenHash, CancellationToken cToken)",
-                    message = "Error inesperado.",
-                    exception = ex.ToString()
-                });
-            }
-
-            //Devolver resultado
-            return result;
         }
 
         /// <summary>
@@ -432,10 +292,8 @@ namespace TFCiclo.Data.Repositories
 
             //Filtros
             if (userId <= 0)
-            {
-                return result;
-            }
-
+                throw new ArgumentException("El id de usuario debe ser mayor o igual a 1");
+            
             try
             {
                 await using MySqlConnection connection = new MySqlConnection(decryptedConnectionString);
@@ -451,41 +309,12 @@ namespace TFCiclo.Data.Repositories
 
                 //Compruebo si ha cambiado alguna línea
                 if (affectedRows > 0)
-                {
-                    result = true;
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Info",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "RevokeAllRefreshTokensByUserIdAsync(int userId, string revokedByIp, CancellationToken cToken)",
-                    message = "Operación cancelada por CancellationToken."
-                });
+                    throw new ArgumentException("No ha sido posible eliminar los refresh tokens del usuario indicado");
+
             }
             catch (MySqlException ex)
             {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Error",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "RevokeAllRefreshTokensByUserIdAsync(int userId, string revokedByIp, CancellationToken cToken)",
-                    message = "Error al revocar todos los refresh tokens.",
-                    exception = ex.ToString()
-                });
-            }
-            catch (Exception ex)
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Critical",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "RevokeAllRefreshTokensByUserIdAsync(int userId, string revokedByIp, CancellationToken cToken)",
-                    message = "Error inesperado.",
-                    exception = ex.ToString()
-                });
+                throw new DatabaseOperationException("Error al eliminar los refresh tokens del usuario indicado");
             }
 
             //Devolver resultado
@@ -515,38 +344,14 @@ namespace TFCiclo.Data.Repositories
                 await connection.OpenAsync(cToken);
 
                 affectedRows = await connection.ExecuteAsync(sql);
-            }
-            catch (OperationCanceledException)
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Info",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "DeleteExpiredRefreshTokensAsync(CancellationToken cToken)",
-                    message = "Operación cancelada por CancellationToken."
-                });
+
+                //Compruebo si se ha borrado el refresh token
+                if (affectedRows <= 0)
+                    throw new ArgumentException("Error al borrar el refresh token");
             }
             catch (MySqlException ex)
             {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Error",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "DeleteExpiredRefreshTokensAsync(CancellationToken cToken)",
-                    message = "Error al eliminar refresh tokens expirados.",
-                    exception = ex.ToString()
-                });
-            }
-            catch (Exception ex)
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Critical",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "DeleteExpiredRefreshTokensAsync(CancellationToken cToken)",
-                    message = "Error inesperado.",
-                    exception = ex.ToString()
-                });
+                throw new DatabaseOperationException("Error al intentar borrar el refresh token");
             }
 
             //Devolver resultado
@@ -578,38 +383,13 @@ namespace TFCiclo.Data.Repositories
                 parameters.Add("@revoked_before", revokedBefore);
 
                 affectedRows = await connection.ExecuteAsync(sql, parameters);
-            }
-            catch (OperationCanceledException)
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Info",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "DeleteRevokedRefreshTokensAsync(DateTime revokedBefore, CancellationToken cToken)",
-                    message = "Operación cancelada por CancellationToken."
-                });
+
+                if (affectedRows <= 0)
+                    throw new ArgumentException("No ha sido posible borrar ningún refresh token en base a la fecha dada");
             }
             catch (MySqlException ex)
             {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Error",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "DeleteRevokedRefreshTokensAsync(DateTime revokedBefore, CancellationToken cToken)",
-                    message = "Error al eliminar refresh tokens revocados.",
-                    exception = ex.ToString()
-                });
-            }
-            catch (Exception ex)
-            {
-                await _logger.AddAsync(new log_entry
-                {
-                    level = "Critical",
-                    source = "TFCiclo.Data.Repositories",
-                    operation = "DeleteRevokedRefreshTokensAsync(DateTime revokedBefore, CancellationToken cToken)",
-                    message = "Error inesperado.",
-                    exception = ex.ToString()
-                });
+                throw new DatabaseOperationException("Error al intentar borrar los refresh tokens antiguos", ex);
             }
 
             //Devolver resultado

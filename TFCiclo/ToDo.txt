@@ -1,15 +1,25 @@
 
-Cambios hechos desde versión aterior:
+Cambios hechos desde versión aterior(V1):
 - Agregado refresh token.
 - Agregada pila de logs.
-- Rate limiting
+- Agregado rate limiting
+Cambios hechos desde versión aterior(V1.1):
+- Agregado enpoints restringidos por rol.
+- Agregado middleware para manejo de excepciones.
+- Agregadas operaciones de administrador
 
 v2 (calendar + login/register + forms)
-- Implementar ip real en los logs(conectar a http context?).
+
 - Implementar roles de usuario (admin, user).
-- Agregar api google calendar.
-- Rotación de api keys jwt
+- Imlementar controlador para gestionar datos usuario(nombre, contraseña, etc)
+
+- Implementar revocación de tokens(despues de cambiar su rol,logout, ...)
+- Aumentar operaciones del AdminUserController (crear, eliminar, modificar usuarios)
 - Cuando un usuario hace login 2 veces, invalidar el refresh token anterior y mantener la lógica del historial.
+- Rotación de api keys jwt
+
+- Cambiar lógica de controladores para que cuando falle una operación sobre DB deshaga todo lo hecho en las operaicones.
+- Agregar api google calendar.
 
 
 - Pruebas de estrés
@@ -39,7 +49,7 @@ v2 (calendar + login/register + forms)
                 }
 
 v3(exponer + test)
-- Ver si lo hago manual o uso algún servicio ya existente para los dos siguintes pasos.
+- Ver si lo hago manual o uso algún servicio ya existente para los dos siguintes pasos.(Azure)
 - Lanzar el servidor en la red local con raspberry + pruebas.
 - Exponer el servidor a la red con raspberry + pruebas.
 

@@ -1,13 +1,16 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace TFCiclo.Api.Controllers.Base
 {
     [ApiController]
-    [Authorize]
-    [EnableRateLimiting("jwt-user")]
     public abstract class ApiControllerBase : ControllerBase
     {
+        /// <summary>
+        /// Obtiene el correlationId del request actual (generado por el middleware)
+        /// </summary>
+        protected string GetCorrelationId()
+        {
+            return HttpContext.Items["CorrelationId"]?.ToString();
+        }
     }
 }

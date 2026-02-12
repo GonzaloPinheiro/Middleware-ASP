@@ -37,11 +37,9 @@ namespace TFCiclo.Connector
                 correlationId: correlationId);
 
             //Varaibles y objetos
-            //string cadenaConexion = "Server=localhost;Database=TFCiclo;User Id=root;Password=gonzalo;"; //TODO eliminar
             bool resultadoOpercion = false;
 
             GetWeatherFromApi getWeatherFromApi = new GetWeatherFromApi(apiKey, _logger, "Timer");
-            //WeatherRepository weatherRepository = new WeatherRepository(connectionString, _logger);
 
             List<weather_forecast> weather_placesList = new List<weather_forecast>();
             forecast_weatherResponse? weatherForecastResponse = null;

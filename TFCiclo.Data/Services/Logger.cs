@@ -15,19 +15,6 @@ namespace TFCiclo.Data.Services
             _logEntryRepository = logEntryRepository ?? throw new ArgumentNullException(nameof(logEntryRepository));
             _logQueue = logQueue ?? throw new ArgumentNullException(nameof(logQueue));
         }
-        //public Logger()//Seguramente sobra
-        //{
-        //    _logEntryRepository = new LogEntryRepository("Server=localhost;Database=TFCiclo;User Id=root;Password=gonzalo;");
-        //    LogBackgroundService backgroundService = new LogBackgroundService(_logEntryRepository);
-
-        //    // Usamos el backgroundService como ILogQueue; OJO: no está registrado como HostedService aquí.
-        //    // En un despliegue real debes registrar LogBackgroundService en DI como HostedService.
-        //    _logQueue = backgroundService;
-
-        //    // Iniciar el worker en segundo plano como tarea "fire-and-forget" para compatibilidad local.
-        //    // En producción preferible usar IHost and AddHostedService.
-        //    Task _ = backgroundService.StartAsync(CancellationToken.None);
-        //}
         #endregion
 
         #region Métodos públicos
@@ -65,34 +52,3 @@ namespace TFCiclo.Data.Services
         #endregion
     }
 }
-
-
-
-
-/// <summary>
-/// 
-/// </summary>
-/// <param name="entry"></param>
-/// <returns></returns>
-/// <exception cref="ArgumentNullException"></exception>
-//public async Task AddAsync(log_entry entry)
-//{
-//    //Compruebo que el el log extista
-//    if (entry != null)
-//    {
-//        //Guardo la hora
-//        entry.timeStamp = DateTimeOffset.UtcNow;
-
-//        // Si no se pasó correlationId, tomarlo del scope activo
-//        entry.correlationId = string.IsNullOrWhiteSpace(entry.correlationId)
-//            ? OperationLogScope.CurrentCorrelationId ?? Guid.NewGuid().ToString()
-//            : entry.correlationId;
-
-//        //Lanzo el add a la DB
-//        _ = await _logEntryRepository.AddLogAsync(entry);
-//    }
-//    else
-//    {
-//        Console.WriteLine("En AddAsync(log_entry entry) se ha obtenido un log con estado null");
-//    }
-//}

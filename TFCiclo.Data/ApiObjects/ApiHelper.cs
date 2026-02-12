@@ -1,6 +1,4 @@
-﻿
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 
 namespace TFCiclo.Data.ApiObjects
 {

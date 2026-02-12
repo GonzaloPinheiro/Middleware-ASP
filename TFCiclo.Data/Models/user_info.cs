@@ -20,7 +20,6 @@ namespace TFCiclo.Data.Models
         public string email { get => _email; set => _email = value; }
         public string user_password { get => _user_password; set => _user_password = value; }
         public DateTime created_at { get => _created_at; set => _created_at = value; }
-
         #endregion
     }
 }
