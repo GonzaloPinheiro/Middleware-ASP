@@ -1,6 +1,6 @@
 ﻿using Dapper.Contrib.Extensions;
 
-namespace TFCiclo.Data.ApiObjects
+namespace TFCiclo.Infrastructure.ApiObjects
 {
     //Clase encargada de almacenar los datos del login del usuario
     //Dapper debe ignorar los elementos de la clase para evitar errores al insertar en DB

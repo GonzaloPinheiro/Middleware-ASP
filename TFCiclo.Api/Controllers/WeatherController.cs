@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using TFCiclo.Api.Controllers.Base;
-using TFCiclo.Data.ApiObjects;
-using TFCiclo.Data.Models;
-using TFCiclo.Data.Repositories;
-using TFCiclo.Data.Services;
+using TFCiclo.Infrastructure.ApiObjects;
+using TFCiclo.Domain.Entities;
+using TFCiclo.Infrastructure.Repositories;
+using TFCiclo.Infrastructure.Observability;
 
 namespace TFCiclo.Api.Controllers
 {
@@ -33,7 +33,6 @@ namespace TFCiclo.Api.Controllers
         /// </summary>
         /// <param name="dto"></param>
         /// <returns></returns>
-        [Authorize]
         [Authorize(Roles = "user,premium_user,admin")]
         [HttpPost]
         [EnableRateLimiting("jwt-user")]

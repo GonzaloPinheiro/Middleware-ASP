@@ -1,5 +1,5 @@
 ﻿
-namespace TFCiclo.Data.Exceptions
+namespace TFCiclo.Domain.Exceptions
 {
     /// <summary>
     /// Se lanza cuando se intenta operar sobre un usuario que no existe 

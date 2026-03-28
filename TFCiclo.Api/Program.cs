@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.RateLimiting;
 using TFCiclo.Api.Middleware;
 using TFCiclo.Connector;
-using TFCiclo.Data.Repositories;
-using TFCiclo.Data.Services;
+using TFCiclo.Infrastructure.Repositories;
+using TFCiclo.Infrastructure.Observability;
 using TimerModule;
 
 var builder = WebApplication.CreateBuilder(args);

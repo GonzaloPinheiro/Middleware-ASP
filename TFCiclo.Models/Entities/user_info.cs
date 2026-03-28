@@ -1,8 +1,6 @@
-﻿using Dapper.Contrib.Extensions;
-
-namespace TFCiclo.Data.Models
+﻿
+namespace TFCiclo.Domain.Entities
 {
-    [Table("user_info")]
     public class user_info
     {
         #region Métodos privados
@@ -14,7 +12,6 @@ namespace TFCiclo.Data.Models
         #endregion
 
         #region Métodos públicos
-        [Key]
         public int id { get => _id; set => _id = value; }
         public string username { get => _username; set => _username = value; }
         public string email { get => _email; set => _email = value; }

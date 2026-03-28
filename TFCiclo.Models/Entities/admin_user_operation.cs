@@ -1,5 +1,5 @@
 ﻿
-namespace TFCiclo.Data.Models
+namespace TFCiclo.Domain.Entities
 {
     public class admin_user_operation
     {

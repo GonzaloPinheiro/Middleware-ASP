@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace TFCiclo.Data.ApiObjects.OpenWeatherInteralModels
+namespace TFCiclo.Infrastructure.ApiObjects.OpenWeatherInteralModels
 {
     public class Rain
     {

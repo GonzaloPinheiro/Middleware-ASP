@@ -1,6 +1,6 @@
-﻿using TFCiclo.Data.Models;
+﻿using TFCiclo.Domain.Entities;
 
-namespace TFCiclo.Data.ApiObjects
+namespace TFCiclo.Infrastructure.ApiObjects
 {
     public class ApiObjectRequest : ApiLogin
     {

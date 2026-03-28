@@ -1,10 +1,8 @@
-﻿using Dapper.Contrib.Extensions;
-using TFCiclo.Data.ApiObjects;
+﻿
 
-namespace TFCiclo.Data.Models
+namespace TFCiclo.Domain.Entities
 {
-    [Table("weather_forecast")]
-    public class weather_forecast : ApiLogin
+    public class weather_forecast
     {
         #region Métodos privados
         private int _id = 0;
@@ -16,7 +14,6 @@ namespace TFCiclo.Data.Models
         #endregion
 
         #region Métodos públicos
-        [Key]
         public int id { get => _id; set => _id = value; }
         public string city { get => _city; set => _city = value; }
         public string country { get => _country; set => _country = value; }

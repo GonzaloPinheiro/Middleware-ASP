@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using TFCiclo.Api.Controllers.Base;
-using TFCiclo.Data.ApiObjects;
-using TFCiclo.Data.Exceptions;
-using TFCiclo.Data.Models;
-using TFCiclo.Data.Models.TFCiclo.Data.Models;
-using TFCiclo.Data.Repositories;
-using TFCiclo.Data.Security;
-using TFCiclo.Data.Services;
+using TFCiclo.Infrastructure.ApiObjects;
+using TFCiclo.Domain.Exceptions;
+using TFCiclo.Domain.Entities;
+using TFCiclo.Domain.Entities.TFCiclo.Data.Models;
+using TFCiclo.Infrastructure.Repositories;
+using TFCiclo.Infrastructure.Security;
+using TFCiclo.Infrastructure.Observability;
 
 namespace TFCiclo.Api.Controllers
 {

@@ -1,10 +1,10 @@
 ﻿using Dapper;
 using MySql.Data.MySqlClient;
-using TFCiclo.Data.Exceptions;
-using TFCiclo.Data.Models.TFCiclo.Data.Models;
-using TFCiclo.Data.Services;
+using TFCiclo.Domain.Exceptions;
+using TFCiclo.Domain.Entities.TFCiclo.Data.Models;
+using TFCiclo.Infrastructure.Observability;
 
-namespace TFCiclo.Data.Repositories
+namespace TFCiclo.Infrastructure.Repositories
 {
     public class RefreshTokenRepository
     {

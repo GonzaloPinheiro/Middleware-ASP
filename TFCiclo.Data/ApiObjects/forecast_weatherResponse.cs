@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
-using TFCiclo.Data.ApiObjects.OpenWeatherInteralModels;
+using TFCiclo.Infrastructure.ApiObjects.OpenWeatherInteralModels;
 
-namespace TFCiclo.Data.ApiObjects
+namespace TFCiclo.Infrastructure.ApiObjects
 {
     public class forecast_weatherResponse
     {

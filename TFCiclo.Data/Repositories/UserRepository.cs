@@ -1,10 +1,10 @@
 ﻿using Dapper;
 using MySql.Data.MySqlClient;
-using TFCiclo.Data.Exceptions;
-using TFCiclo.Data.Models;
-using TFCiclo.Data.Services;
+using TFCiclo.Domain.Exceptions;
+using TFCiclo.Domain.Entities;
+using TFCiclo.Infrastructure.Observability;
 
-namespace TFCiclo.Data.Repositories
+namespace TFCiclo.Infrastructure.Repositories
 {
     public class UserRepository
     {
@@ -31,7 +31,6 @@ namespace TFCiclo.Data.Repositories
         /// </summary>
         /// <param name="username"></param>
         /// <returns></returns>
-        //public async Task<user_info?> GetUserByUserNameAsync(string username, CancellationToken cToken)
         public async Task<user_info?> GetUserByUserNameAsync(string username, CancellationToken cToken)
         {
             //Variables y objetos
@@ -150,6 +149,98 @@ namespace TFCiclo.Data.Repositories
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="cToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="UserNotFoundException"></exception>
+        public async Task<string> GetUsernameByIdAsync(int userId, CancellationToken cToken)
+        {
+            //Variables y objetos
+            string? result = null;
+
+            const string sql = @"
+                SELECT username
+                FROM user_info
+                WHERE id = @userId
+                LIMIT 1;
+            ";
+
+            //Filtros
+            if (userId <= -1)
+                throw new ArgumentException("El id debe ser mayor o igual a 0");
+
+            await using MySqlConnection connection = new MySqlConnection(decryptedConnectionString);
+            await connection.OpenAsync(cToken);
+
+            //Agrego las propiedades que uso en la query
+            DynamicParameters parameters = new DynamicParameters();
+            parameters.Add("@userId", userId);
+
+            //Devuelvo el objeto mapeado
+            result = await connection.QueryFirstOrDefaultAsync<string>(sql, parameters);
+
+            //Compruebo que haya encontrado un usuario con ese id
+            if (result == null)
+                throw new UserNotFoundException(userId);
+
+            //Devolver resultado
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="cToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="UserNotFoundException"></exception>
+        public async Task<string> GetPasswordByIdAsync(int userId, CancellationToken cToken)
+        {
+            //Variables y objetos
+            string? result = null;
+
+            const string sql = @"
+                SELECT user_password
+                FROM user_info
+                WHERE id = @userId
+                LIMIT 1;
+            ";
+
+            //Filtros
+            if (userId <= -1)
+                throw new ArgumentException("El campo id debe ser mayor o igual a 0");
+
+            await using MySqlConnection connection = new MySqlConnection(decryptedConnectionString);
+            await connection.OpenAsync(cToken);
+
+            try
+            {
+                //Agrego las propiedades que uso en la query
+                DynamicParameters parameters = new DynamicParameters();
+                parameters.Add("@userId", userId);
+
+                //Devuelvo el objeto mapeado
+                result = await connection.QueryFirstOrDefaultAsync<string>(sql, parameters);
+
+                //Compruebo que haya encontrado un usuario con ese id
+                if (result == null)
+                    throw new UserNotFoundException(userId);
+
+                //Devolver resultado
+                return result;
+            }
+            catch (MySqlException ex)
+            {
+                throw new DatabaseOperationException("Error en la query de operación MySql", ex);
+            }
+
+        }
+
+        /// <summary>
         /// Devuelve la lista de todos los usuarios en user_info
         /// </summary>
         /// <param name="cToken"></param>
@@ -227,6 +318,160 @@ namespace TFCiclo.Data.Repositories
 
             //Devolver resultado
             return newId;
+        }
+        #endregion
+
+        #region Updates
+        /// <summary>
+        /// Actualiza la contraseña del usuario equivalente a su id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="HashPassword"></param>
+        /// <param name="cToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="InternalInfoNotFoundException"></exception>
+        /// <exception cref="UserNotFoundException"></exception>
+        /// <exception cref="DatabaseOperationException"></exception>
+        public  async Task UpdatePasswordByIdAsync(int userId, string HashPassword,CancellationToken cToken)
+        {
+            //Variables y objetos
+            int affectedRows = -1;
+
+            const string sql = @"
+                UPDATE user_info
+                SET user_password = @HashPassword
+                WHERE id = @userId
+                LIMIT 1
+            ";
+
+            //Filtros
+            if (userId <= 0)
+                throw new ArgumentException("El user id debe ser mayor a 0 ", nameof(userId));
+
+            if (String.IsNullOrEmpty(HashPassword))
+                throw new InternalInfoNotFoundException("Intento de insertar contraseña vacía o null");
+
+            try
+            {
+                await using MySqlConnection connection = new MySqlConnection(decryptedConnectionString);
+                await connection.OpenAsync(cToken);
+
+                //Agrego las propiedades que uso en la query
+                DynamicParameters parameters = new DynamicParameters();
+                parameters.Add("@HashPassword", HashPassword);
+                parameters.Add("@userId", userId);
+
+                //Ejecuto la query
+                affectedRows = await connection.ExecuteAsync(sql, parameters);
+
+                //Compruebo las filas afectadas por si no encontró el ususario
+                if (affectedRows == 0)
+                    throw new UserNotFoundException(userId);
+            }
+            catch (MySqlException ex)
+            {
+                throw new DatabaseOperationException("Error en la query de operación MySql", ex);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="username"></param>
+        /// <param name="cToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="InternalInfoNotFoundException"></exception>
+        /// <exception cref="UserNotFoundException"></exception>
+        /// <exception cref="DatabaseOperationException"></exception>
+        public async Task UpdateUsernameByIdAsync(int userId, string username, CancellationToken cToken)
+        {
+            //Variables y objetos
+            int affectedRows = -1;
+
+            const string sql = @"
+                UPDATE user_info
+                SET username = @username
+                WHERE id = @userId
+                LIMIT 1
+            ";
+
+            //Filtros
+            if (userId <= 0)
+                throw new ArgumentException("El user id debe ser mayor a 0 ", nameof(userId));
+
+            if (String.IsNullOrEmpty(username))
+                throw new InternalInfoNotFoundException("Intento de insertar nombre de usuario vacío o null");
+
+            try
+            {
+                await using MySqlConnection connection = new MySqlConnection(decryptedConnectionString);
+                await connection.OpenAsync(cToken);
+
+                //Agrego las propiedades que uso en la query
+                DynamicParameters parameters = new DynamicParameters();
+                parameters.Add("@username", username);
+                parameters.Add("@userId", userId);
+
+                //Ejecuto la query
+                affectedRows = await connection.ExecuteAsync(sql, parameters);
+
+                //Compruebo las filas afectadas por si no encontró el ususario
+                if (affectedRows == 0)
+                    throw new UserNotFoundException(userId);
+            }
+            catch (MySqlException ex)
+            {
+                throw new DatabaseOperationException("Error en la query de operación MySql", ex);
+            }
+        }
+        #endregion
+
+        #region Deletes
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="cToken"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="UserNotFoundException"></exception>
+        /// <exception cref="DatabaseOperationException"></exception>
+        public async Task DeleteUserByIdAsync(int userId, CancellationToken cToken)
+        {
+            //Variables y objetos
+            int affectedRows = -1;
+
+            const string sql = @"
+                DELETE FROM user_info
+                WHERE id = @user_id;
+            ";
+
+            //Filtros
+            if (userId <= -1)
+                throw new ArgumentException("El user id debe ser mayor o igual a 0");
+
+            try
+            {
+                await using MySqlConnection connection = new MySqlConnection(decryptedConnectionString);
+                await connection.OpenAsync(cToken);
+
+                //Agrego las propiedades que uso en la query
+                DynamicParameters parameters = new DynamicParameters();
+                parameters.Add("@user_id", userId);
+
+                //Ejecutar el delete
+                affectedRows = await connection.ExecuteAsync(sql, parameters);
+
+                //Compruebo las filas afectadas por si no existía el usuario
+                if (affectedRows <= 0) throw new UserNotFoundException(userId);
+            }
+            catch (MySqlException ex) //Mysql exception
+            {
+                throw new DatabaseOperationException("Error en la query al eliminar el usuario", ex);
+            }
         }
         #endregion
     }

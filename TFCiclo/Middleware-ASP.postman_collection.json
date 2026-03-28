@@ -1,0 +1,406 @@
+{
+  "info": {
+    "_postman_id": "f2b4894d-2bd6-45f0-be0c-d44413aa770f",
+    "name": "Middleware-ASP",
+    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "49030299",
+    "_collection_link": "https://go.postman.co/collection/49030299-f2b4894d-2bd6-45f0-be0c-d44413aa770f?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "https://localhost:7008/Health",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Successful POST request\", function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n\t\"name\": \"Add your name in the body\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7008/Health",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7008",
+          "path": [
+            "Health"
+          ]
+        },
+        "description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+      },
+      "response": []
+    },
+    {
+      "name": "https://localhost:7008/api/GetWeatherForecast",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Successful POST request\", function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"weather_forecast\": {\n    \"city\": \"Moaña\",\n    \"country\": \"ES\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7008/api/GetWeatherForecast",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7008",
+          "path": [
+            "api",
+            "GetWeatherForecast"
+          ]
+        },
+        "description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+      },
+      "response": []
+    },
+    {
+      "name": "https://localhost:7008/api/Auth/Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"user_info\": {\r\n    \"username\": \"Gonzalo\",\r\n    \"user_password\": \"gonzalo\"\r\n  }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7008/api/Auth/Login",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7008",
+          "path": [
+            "api",
+            "Auth",
+            "Login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "https://localhost:7008/api/Auth/Register",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"user_info\": {\r\n    \"username\": \"Gonzalo\",\r\n    \"email\": \"gonzalo@gmail.com\",\r\n    \"user_password\": \"gonzalo\"\r\n  }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7008/api/Auth/Register",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7008",
+          "path": [
+            "api",
+            "Auth",
+            "Register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "https://localhost:7008/api/Auth/RefreshToken",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJHb256YWxvUGluaGVpcm8yIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiVXNlciIsImp0aSI6IjQ2MTNkMzU0LTRjNjAtNDlkOS1iZWRkLTE0YTVmZGYzYmIxMiIsImV4cCI6MTc2NTkwNTkxMSwiaXNzIjoidGZjaWNsbyIsImF1ZCI6InRmY2ljbG8ifQ.CjWhCMoiN5w1Qu5EDPCSiAin7eJ-_Kz1KdnuWBcKR7g",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"RefreshToken\": \"wunJQyCF8CLZ2mCnsa71CpbHyT1+ls8kT7bFgPCPHUk=\",\r\n    \"AccesToken\": \"AccesToken\",\r\n    \"user_info\": {\r\n        \"username\": \"Gonzalo\"\r\n    }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7008/api/Auth/RefreshToken",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7008",
+          "path": [
+            "api",
+            "Auth",
+            "RefreshToken"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "https://localhost:7008/api/admin/GetUsersList",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJHb256YWxvUGluaGVpcm8yIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6IkdvbnphbG9QaW5oZWlybzIiLCJqdGkiOiI1MDY4NmMxOS0zOTFkLTQ5NWUtYTQ5NS0wZDVmNWNjY2YxZTAiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJ1c2VyIiwiZXhwIjoxNzY5MTcwMjYwLCJpc3MiOiJ0ZmNpY2xvIiwiYXVkIjoidGZjaWNsbyJ9.hTxBkT98mr0iuOT5dQmhSpbkZoqJShUgnl9HxRLcUUs",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://localhost:7008/api/admin/GetUsersList",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7008",
+          "path": [
+            "api",
+            "admin",
+            "GetUsersList"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "https://localhost:7008/api/admin/GetUsersById",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMCIsImp0aSI6ImQyMzViNjljLTU3YWEtNDMyZC1hMzNkLWI5ZThlM2E1YjkxOSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImFkbWluIiwiZXhwIjoxNzcwNjU5MTg3LCJpc3MiOiJ0ZmNpY2xvIiwiYXVkIjoidGZjaWNsbyJ9.gZHPbAQIhF4U3UjWaXHn1PWS_bqKHjLtpkbzFOlAewA",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{    \r\n    \"user_info\": {\r\n        \"id\": 11\r\n    }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7008/api/admin/GetUsersById",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7008",
+          "path": [
+            "api",
+            "admin",
+            "GetUsersById"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "https://localhost:7008/api/admin/ChangeRole",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMCIsImp0aSI6IjY1N2U4N2MwLTQ3YWMtNDM0Ny04NzgxLTRmMDM2MmU4ZmNiMSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImFkbWluIiwiZXhwIjoxNzcwMzk2ODk1LCJpc3MiOiJ0ZmNpY2xvIiwiYXVkIjoidGZjaWNsbyJ9.xQRH7-tyCipFfxmk15xg-Ba373bQg9_LTFpRjs4OQug",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{    \r\n    \"user_info\": {\r\n        \"id\": 10\r\n    },\r\n    \"admin_user_Operation\": {\r\n        \"newRoleId\": 2\r\n    }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7008/api/admin/ChangeRole",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7008",
+          "path": [
+            "api",
+            "admin",
+            "ChangeRole"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "https://localhost:7008/api/admin/EliminateUser",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMCIsImp0aSI6IjY1N2U4N2MwLTQ3YWMtNDM0Ny04NzgxLTRmMDM2MmU4ZmNiMSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImFkbWluIiwiZXhwIjoxNzcwMzk2ODk1LCJpc3MiOiJ0ZmNpY2xvIiwiYXVkIjoidGZjaWNsbyJ9.xQRH7-tyCipFfxmk15xg-Ba373bQg9_LTFpRjs4OQug",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{    \r\n    \"user_info\": {\r\n        \"id\": 10\r\n    }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7008/api/admin/EliminateUser",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7008",
+          "path": [
+            "api",
+            "admin",
+            "EliminateUser"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "https://localhost:7008/api/user/ChangePassword",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMCIsImp0aSI6IjY1N2U4N2MwLTQ3YWMtNDM0Ny04NzgxLTRmMDM2MmU4ZmNiMSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImFkbWluIiwiZXhwIjoxNzcwMzk2ODk1LCJpc3MiOiJ0ZmNpY2xvIiwiYXVkIjoidGZjaWNsbyJ9.xQRH7-tyCipFfxmk15xg-Ba373bQg9_LTFpRjs4OQug",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{    \r\n    \"user_info\": {\r\n        \"user_password\": \"gonzalo\"\r\n    }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7008/api/user/ChangePassword",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7008",
+          "path": [
+            "api",
+            "user",
+            "ChangePassword"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "https://localhost:7008/api/user/ChangeUsername",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMCIsImp0aSI6IjY1N2U4N2MwLTQ3YWMtNDM0Ny04NzgxLTRmMDM2MmU4ZmNiMSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImFkbWluIiwiZXhwIjoxNzcwMzk2ODk1LCJpc3MiOiJ0ZmNpY2xvIiwiYXVkIjoidGZjaWNsbyJ9.xQRH7-tyCipFfxmk15xg-Ba373bQg9_LTFpRjs4OQug",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{    \r\n    \"user_info\": {\r\n        \"username\": \"gonzalo2Cambiado\"\r\n    }\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://localhost:7008/api/user/ChangeUsername",
+          "protocol": "https",
+          "host": [
+            "localhost"
+          ],
+          "port": "7008",
+          "path": [
+            "api",
+            "user",
+            "ChangeUsername"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

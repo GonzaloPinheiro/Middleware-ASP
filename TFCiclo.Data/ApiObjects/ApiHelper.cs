@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace TFCiclo.Data.ApiObjects
+namespace TFCiclo.Infrastructure.ApiObjects
 {
     public class ApiHelper
     {

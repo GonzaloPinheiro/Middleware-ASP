@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TFCiclo.Data.Models
+namespace TFCiclo.Domain.Entities
 {
     [Table("user_roles")]
     public class user_roles

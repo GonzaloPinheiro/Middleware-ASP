@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace TFCiclo.Data.Security
+namespace TFCiclo.Infrastructure.Security
 {
     public static class PasswordHelper
     {

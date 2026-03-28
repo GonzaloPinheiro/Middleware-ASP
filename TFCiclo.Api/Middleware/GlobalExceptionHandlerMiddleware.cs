@@ -1,7 +1,7 @@
-﻿using TFCiclo.Data.ApiObjects;
-using TFCiclo.Data.Exceptions;
-using TFCiclo.Data.Models;
-using TFCiclo.Data.Services;
+﻿using TFCiclo.Infrastructure.ApiObjects;
+using TFCiclo.Domain.Exceptions;
+using TFCiclo.Domain.Entities;
+using TFCiclo.Infrastructure.Observability;
 
 namespace TFCiclo.Api.Middleware
 {

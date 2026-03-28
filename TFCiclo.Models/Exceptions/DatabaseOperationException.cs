@@ -1,5 +1,5 @@
 ﻿
-namespace TFCiclo.Data.Exceptions
+namespace TFCiclo.Domain.Exceptions
 {
     /// <summary>
     /// Se lanza cuando ocurre un error de infraestructura en la base de datos

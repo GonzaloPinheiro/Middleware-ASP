@@ -1,6 +1,6 @@
-﻿using TFCiclo.Data.Models;
+﻿using TFCiclo.Domain.Entities;
 
-namespace TFCiclo.Data.Services
+namespace TFCiclo.Infrastructure.Observability
 {
     // Helper que registra automáticamente "Entrada" al crear y "Salida" al disponer,
     // además calcula la duración. Usa AddAsync del Logger internamente.

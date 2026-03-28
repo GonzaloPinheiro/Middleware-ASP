@@ -6,23 +6,25 @@ Cambios hechos desde versión aterior(V1):
 Cambios hechos desde versión aterior(V1.1):
 - Agregado enpoints restringidos por rol.
 - Agregado middleware para manejo de excepciones.
-- Agregadas operaciones de administrador
+- Agregadas operaciones de administrador.
+- Implementados roles por el jwt(Falta pulir)
+Cambios hechos desde versión aterior(V1.2):
+- Agregadas operaciones personales para usuarios(cambiar nombre/contraseña).
+- Estructura del proyecto modificada para seguir filosofía clean architecture.
+- Eliminado apiHelper de .data/ahora -> .infrastructure y creado helper en .Domain
 
 v2 (calendar + login/register + forms)
 
-- Implementar roles de usuario (admin, user).
-- Imlementar controlador para gestionar datos usuario(nombre, contraseña, etc)
-
 - Implementar revocación de tokens(despues de cambiar su rol,logout, ...)
-- Aumentar operaciones del AdminUserController (crear, eliminar, modificar usuarios)
 - Cuando un usuario hace login 2 veces, invalidar el refresh token anterior y mantener la lógica del historial.
 - Rotación de api keys jwt
+- Implementar generación de la Db de forma automática con migraciones.(EntityFramework)
 
 - Cambiar lógica de controladores para que cuando falle una operación sobre DB deshaga todo lo hecho en las operaicones.
 - Agregar api google calendar.
 
 
-- Pruebas de estrés
+- Pruebas de estrés con docker?
 
 - Crear enum de errores?
 	ejemplo:    /// <summary>

@@ -1,8 +1,6 @@
-﻿using Dapper.Contrib.Extensions;
-
-namespace TFCiclo.Data.Models
+﻿
+namespace TFCiclo.Domain.Entities
 {
-    [Table("log_entry")]
     public class log_entry
     {
         #region Métodos privados
@@ -20,7 +18,6 @@ namespace TFCiclo.Data.Models
         #endregion
 
         #region Métodos públicos
-        [Key]
         public int id { get => _id; set => _id = value; }                                      // PK (identity)
         public DateTimeOffset timeStamp { get => _timeStamp; set => _timeStamp = value; }      // momento del registro (UTC)
         public string level { get => _level; set => _level = value; }                          // Info, Warning, Error, Critical

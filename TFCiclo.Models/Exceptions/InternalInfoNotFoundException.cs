@@ -1,5 +1,5 @@
 ﻿
-namespace TFCiclo.Data.Exceptions
+namespace TFCiclo.Domain.Exceptions
 {
     public class InternalInfoNotFoundException : Exception
     {

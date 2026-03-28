@@ -1,6 +1,6 @@
-﻿using TFCiclo.Data.Models;
+﻿using TFCiclo.Domain.Entities;
 
-namespace TFCiclo.Data.Services
+namespace TFCiclo.Infrastructure.Observability
 {
     // Interfaz que expone la operación rápida de encolar logs
     public interface ILogQueue

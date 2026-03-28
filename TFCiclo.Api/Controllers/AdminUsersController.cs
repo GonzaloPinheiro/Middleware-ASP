@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using TFCiclo.Api.Controllers.Base;
-using TFCiclo.Data.ApiObjects;
-using TFCiclo.Data.Models;
-using TFCiclo.Data.Repositories;
-using TFCiclo.Data.Services;
+using TFCiclo.Infrastructure.ApiObjects;
+using TFCiclo.Domain.Entities;
+using TFCiclo.Infrastructure.Repositories;
+using TFCiclo.Infrastructure.Observability;
 
 namespace TFCiclo.Api.Controllers
 {
@@ -39,7 +38,6 @@ namespace TFCiclo.Api.Controllers
         /// </summary>
         /// <param name="cToken"></param>
         /// <returns></returns>
-        [Authorize]
         [Authorize(Roles = "admin")]
         [HttpPost]
         [Route("api/admin/GetUsersList")]
@@ -150,7 +148,6 @@ namespace TFCiclo.Api.Controllers
 
 
         #region ChangeRole
-        [Authorize]
         [Authorize(Roles = "admin")]
         [HttpPost]
         [Route("api/admin/ChangeRole")]
@@ -192,9 +189,7 @@ namespace TFCiclo.Api.Controllers
             });
 
             //Variables
-            int userId = int.Parse(
-                User.FindFirst(ClaimTypes.NameIdentifier)!.Value //Sub se valida en program.cs
-            );
+            int userId = getUserId();
             roles? userRole = null;
 
             //Compruebo que no se intente cambiar el rol del propio usuario
@@ -213,6 +208,68 @@ namespace TFCiclo.Api.Controllers
 
             //Todo Ok
             return new ApiObjectResponse(true, null, 0, "Rol actualizado correctamente");
+        }
+        #endregion
+
+        #region EliminateUser
+        [Authorize(Roles = "admin")]
+        [HttpPost]
+        [Route("api/admin/EliminateUser")]
+        public async Task<ApiObjectResponse> EliminateUser(ApiObjectRequest dto, CancellationToken cToken)
+        {
+            //Variables y objetos
+            string correlationId = GetCorrelationId();
+            ApiObjectResponse Result = new ApiObjectResponse();
+            string username = User.Identity?.Name ?? "Unknown"; // username del JWT
+
+            // Comienza scope: registra entrada automáticamente y registrará salida al finalizar using.
+            await using OperationLogScope scope = _logger.BeginScope(
+                source: "TFCiclo.Api.Controllers.AdminUsersController",
+                operation: "EliminateUser(ApiObjectRequest dto, CancellationToken cToken)",
+                correlationId: correlationId,
+                userId: username);
+
+            //Obtener resultado
+            Result = await eliminateUserAsync(dto, cToken);
+
+            //Devuelve el resultado
+            return Result;
+        }
+
+        private async Task<ApiObjectResponse> eliminateUserAsync(ApiObjectRequest e, CancellationToken cToken)
+        {
+            await _logger.AddAsync(new log_entry
+            {
+                level = "Information",
+                source = "TFCiclo.Api.AdminUsersController",
+                operation = "eliminateUserAsync(ApiObjectRequest e, CancellationToken cToken)",
+                message = "Entrado en la función"
+            });
+
+            //Variables
+            int userId = getUserId();
+            roles targetUserRole;
+
+            //Filtros
+            if (e?.user_info == null || e.user_info.id <= 0)
+                throw new ArgumentException("Datos del usuario inválidos");
+
+            //Compruebo si el usuario a eliminar es el propio usuario
+            if (userId == e.user_info.id)
+                throw new ArgumentException("No se puede elminar el propio usuario");
+
+            //Obtengo el rol del usuario a eliminar
+            targetUserRole = await _user_RolesRepository.GetRoleFromUserAsync(e.user_info.id, cToken);
+
+            //Commpruebo que el usuario a eliminar no es un admin
+            if (targetUserRole.id == 3)
+                throw new ArgumentException("No se puede eliminar un usuario con rol de admin");
+
+            //Elimino el usuario
+            await _userRepository.DeleteUserByIdAsync(e.user_info.id, cToken);
+
+            //Todo Ok
+            return new ApiObjectResponse(true, null, 0, string.Empty);
         }
         #endregion
     }

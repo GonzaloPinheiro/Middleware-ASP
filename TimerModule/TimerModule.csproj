@@ -11,8 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenWeather.Connector\TFCiclo.Connector.csproj" />
-    <ProjectReference Include="..\TFCiclo.Data\TFCiclo.Data.csproj" />
+    <ProjectReference Include="..\OpenWeather.Connector\TFCiclo.Connectors.csproj" />
+    <ProjectReference Include="..\TFCiclo.Data\TFCiclo.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

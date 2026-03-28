@@ -1,8 +1,5 @@
-﻿using Dapper.Contrib.Extensions;
-
-namespace TFCiclo.Data.Models
+﻿namespace TFCiclo.Domain.Entities
 {
-    [Table("roles")]
     public class roles
     {
         #region Métodos privados
@@ -12,7 +9,6 @@ namespace TFCiclo.Data.Models
         #endregion
 
         #region Métodos públicos
-        [Key]
         public int id { get => _id; set => _id = value; }
         public string name { get => _name; set => _name = value; }
         public string description { get => _description; set => _description = value; }

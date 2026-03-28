@@ -1,7 +1,7 @@
-﻿using TFCiclo.Data.Models;
-using TFCiclo.Data.Repositories;
+﻿using TFCiclo.Domain.Entities;
+using TFCiclo.Infrastructure.Repositories;
 
-namespace TFCiclo.Data.Services
+namespace TFCiclo.Infrastructure.Observability
 {
     public class Logger
     {

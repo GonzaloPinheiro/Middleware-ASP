@@ -17,8 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TFCiclo.Api\TFCiclo.Api.csproj" />
-    <ProjectReference Include="..\TFCiclo.Data\TFCiclo.Data.csproj" />
+    <ProjectReference Include="..\TFCiclo.Models\TFCiclo.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\" />
   </ItemGroup>
 
 </Project>

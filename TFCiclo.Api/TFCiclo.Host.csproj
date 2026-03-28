@@ -12,7 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TFCiclo.Data\TFCiclo.Data.csproj" />
+    <ProjectReference Include="..\OpenWeather.Connector\TFCiclo.Connectors.csproj" />
+    <ProjectReference Include="..\TFCiclo.Data\TFCiclo.Infrastructure.csproj" />
     <ProjectReference Include="..\TimerModule\TimerModule.csproj" />
   </ItemGroup>
 

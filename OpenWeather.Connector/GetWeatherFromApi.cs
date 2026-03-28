@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
-using TFCiclo.Data.ApiObjects;
-using TFCiclo.Data.Models;
-using TFCiclo.Data.Services;
+using TFCiclo.Infrastructure.ApiObjects;
+using TFCiclo.Domain.Entities;
+using TFCiclo.Infrastructure.Observability;
 
 //Función encargada de guardar en db los datos de la api openWeather
 public class GetWeatherFromApi

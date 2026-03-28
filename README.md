@@ -14,29 +14,35 @@ La **versión 1** prioriza el aprendizaje y el diseño de una buena base técnic
 
 ## 🏗️ Esquema de la arquitectura
 
-A nivel conceptual, el flujo principal del sistema puede verse así:
-
 ```text
 Cliente (App / Postman)
           |
         HTTPS
           |
-     [ TFCiclo.API ]
-(Controladores + lógica)
-        /      \
-       /        \
-[TFCiclo.Data]  [TimerModule]
- (BD + JWT)         |
-        |           |
-      MySQL   [TFCiclo.Connector]
-                  |
-             APIs externas
-              (OpenWeather)
+   [ TFCiclo.Host ]
+  (Controllers + Middleware)
+       |          |
+       |          |
+       v          v
+[TFCiclo.Domain]  [TFCiclo.Infrastructure]
+ (Entidades +      (Repositorios + Security
+  Excepciones)      + Observability)
+                         |
+                       MySQL
+       |
+       v
+[TFCiclo.Connectors]
+  (APIs externas)
+       |
+  OpenWeather API
+
+[TimerModule] ──────────> [TFCiclo.Connectors]
+(Tarea en segundo plano)
 ```
 
-- **TFCiclo.API** es la única parte expuesta al exterior y gestiona los **endpoints de login, registro y consulta de clima**.
-- **TFCiclo.Data** centraliza el acceso a **MySQL**, la generación de **JWT**, el hash de contraseñas y el sistema de logs.
-- **TimerModule** ejecuta un **servicio en segundo plano** que periódicamente consulta ubicaciones en base de datos y pide datos a las APIs externas a través de **TFCiclo.Connector**.
+- **TFCiclo.Host** es la única parte expuesta al exterior y gestiona los **endpoints de login, registro y consulta de clima**.
+- **TFCiclo.Infrastructure** centraliza el acceso a **MySQL**, la generación de **JWT**, el hash de contraseñas y el sistema de logs.
+- **TimerModule** ejecuta un **servicio en segundo plano** que periódicamente consulta ubicaciones en base de datos y pide datos a las APIs externas a través de **TFCiclo.Connectors**.
 
 ---
 
@@ -44,13 +50,13 @@ Cliente (App / Postman)
 
 La solución se organiza en varios proyectos ASP.NET y bibliotecas de clases, cada uno con una responsabilidad bien delimitada:
 
-- **TFCiclo.API**  
+- **TFCiclo.Host**  
   Web API que expone los endpoints, gestiona los controladores y concentra la lógica principal, incluyendo **login y registro mediante JWT**.
 
-- **TFCiclo.Data**  
+- **TFCiclo.Infrastructure**  
   Capa de acceso a datos, responsable de todas las operaciones con **MySQL** mediante **Dapper**, modelos, repositorios y utilidades de seguridad (hash de contraseñas, generación y validación de JWT, logger, etc.).
 
-- **TFCiclo.Connector**  
+- **TFCiclo.Connectors**  
   Módulo encargado de realizar las peticiones HTTP a **APIs externas** como OpenWeather y procesar sus respuestas.
 
 - **TimerModule**  
@@ -72,26 +78,28 @@ La solución se organiza en varios proyectos ASP.NET y bibliotecas de clases, ca
 
 ```text
 /
-├─ TFCiclo.API
+├─ TFCiclo.Host                        # Punto de entrada de la aplicación
 │  ├─ Controllers
-│  │   ├─ AuthController.cs
-│  │   └─ WeatherController.cs
+│  ├─ Middleware.json
+│  │   ├─ GlobalExceptionHandlerMiddleware.cs
 │  ├─ appsettings.json
-│  └─ Program.cs / Startup
+│  └─ Program.cs
 │
-├─ TFCiclo.Data
+├─ TFCiclo.Domain                      # Núcleo de negocio, sin dependencias externas
+│  ├─ Entities
+│  └─ Exceptions
+│
+├─ TFCiclo.Infrastructure              # Implementaciones tecnológicas concretas
 │  ├─ ApiObjects
-│  ├─ Models
+│  │   └─ OpenWeatherInteralModels                     
 │  ├─ Repositories
 │  ├─ Security
-│  ├─ Services   (Logger, etc.)
-│  └─ SQLSentences (CREATE TABLE, etc.)
+│  ├─ Observability
+│  └─ SQLSentences.txt                 # Scripts CREATE TABLE, etc.
 │
-├─ TFCiclo.Connector
-│  ├─ GetWeatherFromApi.cs
-│  └─ TimerConnector.cs
+├─ TFCiclo.Connectors                  # Adaptadores a APIs externas
 │
-└─ TimerModule
+└─ TimerModule                         # Servicio en segundo plano
    └─ TimedHostedService.cs
 ```
 

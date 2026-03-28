@@ -1,8 +1,8 @@
 ﻿using Dapper;
 using MySql.Data.MySqlClient;
-using TFCiclo.Data.Models;
+using TFCiclo.Domain.Entities;
 
-namespace TFCiclo.Data.Repositories
+namespace TFCiclo.Infrastructure.Repositories
 {
     public class LogEntryRepository
     {

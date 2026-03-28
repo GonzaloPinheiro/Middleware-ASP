@@ -1,8 +1,8 @@
 ﻿using MySql.Data.MySqlClient;
-using TFCiclo.Data.ApiObjects;
-using TFCiclo.Data.Models;
-using TFCiclo.Data.Repositories;
-using TFCiclo.Data.Services;
+using TFCiclo.Infrastructure.ApiObjects;
+using TFCiclo.Domain.Entities;
+using TFCiclo.Infrastructure.Repositories;
+using TFCiclo.Infrastructure.Observability;
 
 namespace TFCiclo.Connector
 {

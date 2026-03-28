@@ -1,5 +1,5 @@
 ﻿
-namespace TFCiclo.Data.Exceptions
+namespace TFCiclo.Domain.Exceptions
 {
     /// <summary>
     /// Se lanza cuando se intenta asignar o consultar un rol que no existe en la base de datos

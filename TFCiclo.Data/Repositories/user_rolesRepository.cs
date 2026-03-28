@@ -1,10 +1,10 @@
 ﻿using Dapper;
 using MySql.Data.MySqlClient;
-using TFCiclo.Data.Exceptions;
-using TFCiclo.Data.Models;
-using TFCiclo.Data.Services;
+using TFCiclo.Domain.Exceptions;
+using TFCiclo.Domain.Entities;
+using TFCiclo.Infrastructure.Observability;
 
-namespace TFCiclo.Data.Repositories
+namespace TFCiclo.Infrastructure.Repositories
 {
     public class user_rolesRepository
     {
